@@ -1,129 +1,129 @@
 """
 Step 5 — CDM generation
 Assembles the final Conceptual Data Model from entities and relationships.
-Also provides export helpers: Mermaid erDiagram and JSON-LD.
+Provides export helpers: Mermaid erDiagram and JSON-LD.
 """
 
+import re
 
-def build_cdm(
-    parsed_doc: dict,
-    entities: list[dict],
-    relationships: list[dict],
-) -> dict:
-    """
-    Assembles the CDM result object.
-    """
+
+def build_cdm(parsed_doc: dict, entities: list[dict], relationships: list[dict]) -> dict:
     return {
         "document_title": _infer_title(parsed_doc),
         "entities": entities,
         "relationships": relationships,
         "stats": {
-            "entity_count": len(entities),
+            "entity_count":      len(entities),
             "relationship_count": len(relationships),
-            "section_count": len(parsed_doc.get("sections", [])),
+            "section_count":     len(parsed_doc.get("sections", [])),
         },
     }
 
 
 def _infer_title(parsed_doc: dict) -> str:
     sections = parsed_doc.get("sections", [])
-    if sections:
-        return sections[0].get("heading", "Business Requirements")
-    return "Business Requirements"
+    return sections[0].get("heading", "Business Requirements") if sections else "Business Requirements"
 
 
-# ─── Mermaid export ──────────────────────────────────────────────────────────
+# ── Mermaid export ────────────────────────────────────────────────────────────
 
 _CARDINALITY_MAP = {
-    "1:1":  ("||", "||"),
-    "1:N":  ("||", "o{"),
-    "N:1":  ("o{", "||"),
-    "M:N":  ("}o", "o{"),
+    "1:1": ("||", "||"),
+    "1:N": ("||", "o{"),
+    "N:1": ("o{", "||"),
+    "M:N": ("}o", "o{"),
 }
+
 
 def result_to_mermaid(result: dict) -> str:
     lines = ["erDiagram"]
 
-    entities = result.get("entities", [])
+    entities      = result.get("entities", [])
     relationships = result.get("relationships", [])
 
-    # Entity blocks with attributes
-    """
+    # Collect valid entity names for relationship filtering
+    valid_names = {_safe_name(e["name"]) for e in entities}
+
+    # Entity blocks — name only, no attributes (CDM level)
     for e in entities:
         name = _safe_name(e["name"])
-        lines.append(f"  {name} {{")
-        lines.append(f"    string id PK")
-        for attr in e.get("attributes", [])[:6]:
-            attr_name = _safe_attr(attr)
-            lines.append(f"    string {attr_name}")
-        lines.append("  }")
-    """
-    # Entity blocks with description
-    for e in entities:
-        name = _safe_name(e["name"])
+        if not name:
+            continue
         lines.append(f"  {name} {{")
         lines.append(f"    string description")
         lines.append("  }")
-    
+
     lines.append("")
 
     # Relationships
-    seen_rel = set()
+    seen = set()
     for r in relationships:
         from_e = _safe_name(r.get("from_entity", ""))
-        to_e = _safe_name(r.get("to_entity", ""))
-        label = _safe_label(r.get("label", "relates_to"))
-        card = r.get("cardinality", "1:N")
+        to_e   = _safe_name(r.get("to_entity", ""))
+        label  = _safe_label(r.get("label", "relates_to"))
+        card   = r.get("cardinality", "1:N")
 
         if not from_e or not to_e:
             continue
-
-        key = (from_e, to_e)
-        if key in seen_rel:
+        # Only draw relationships between known entities
+        if from_e not in valid_names or to_e not in valid_names:
             continue
-        seen_rel.add(key)
+
+        key = (from_e, to_e, label)
+        if key in seen:
+            continue
+        seen.add(key)
 
         left, right = _CARDINALITY_MAP.get(card, ("||", "o{"))
-        required = r.get("required", False)
-        connector = "--" if required else ".."
+        connector   = "--" if r.get("required", False) else ".."
 
-        lines.append(f"  {from_e} {left}{connector}{right} {to_e} : \"{label}\"")
+        lines.append(f'  {from_e} {left}{connector}{right} {to_e} : "{label}"')
 
     return "\n".join(lines)
 
 
 def _safe_name(name: str) -> str:
-    """Make entity name safe for Mermaid — remove spaces, keep PascalCase."""
-    import re
-    name = re.sub(r"[^A-Za-z0-9_]", "", name.replace(" ", "_"))
-    return name or "Entity"
-
-
-def _safe_attr(attr: str) -> str:
-    import re
-    attr = attr.strip().lower()
-    attr = re.sub(r"[^a-z0-9_]", "_", attr.replace(" ", "_"))
-    attr = re.sub(r"_+", "_", attr).strip("_")
-    return attr or "field"
+    """
+    Convert entity name to Mermaid-safe identifier.
+    Strips everything except letters and digits — no underscores,
+    no special chars, must start with a letter, max 40 chars.
+    """
+    if not name:
+        return ""
+    # Replace common separators with nothing
+    clean = name.replace(" ", "").replace("_", "").replace("-", "").replace(".", "")
+    # Keep only letters and digits
+    clean = re.sub(r"[^A-Za-z0-9]", "", clean)
+    # Must start with a letter
+    if clean and not clean[0].isalpha():
+        clean = "E" + clean
+    return clean[:40] if clean else ""
 
 
 def _safe_label(label: str) -> str:
-    import re
-    label = label.strip()
-    label = re.sub(r'["\n]', "", label)
-    return label[:40] if label else "relates to"
+    """
+    Convert relationship label to Mermaid-safe quoted string.
+    Keeps only letters, digits, spaces and hyphens. Max 30 chars.
+    """
+    if not label:
+        return "relates to"
+    # Keep only safe characters
+    clean = re.sub(r"[^A-Za-z0-9 \-]", "", label.strip())
+    # Collapse whitespace
+    clean = re.sub(r"\s+", " ", clean).strip()
+    return clean[:30] if clean else "relates to"
 
 
-# ─── JSON-LD export ───────────────────────────────────────────────────────────
+# ── JSON-LD export ────────────────────────────────────────────────────────────
 
 def result_to_jsonld(result: dict) -> dict:
     context = {
         "@context": {
-            "@vocab": "https://schema.org/",
-            "cdm": "https://example.org/cdm#",
-            "entity": "cdm:entity",
-            "relationship": "cdm:relationship",
-            "cardinality": "cdm:cardinality",
+            "@vocab":        "https://schema.org/",
+            "cdm":           "https://example.org/cdm#",
+            "entity":        "cdm:entity",
+            "relationship":  "cdm:relationship",
+            "cardinality":   "cdm:cardinality",
             "ontologyMatch": "cdm:ontologyMatch",
         }
     }
@@ -131,32 +131,34 @@ def result_to_jsonld(result: dict) -> dict:
     entities_ld = []
     for e in result.get("entities", []):
         entities_ld.append({
-            "@type": "cdm:Entity",
-            "@id": f"cdm:{e['name']}",
-            "name": e["name"],
-            "description": e.get("description", ""),
-            "cdm:entityType": e.get("type", "core"),
-            "cdm:attributes": e.get("attributes", []),
-            "cdm:ontologyMatch": e.get("ontology_matches", []),
+            "@type":              "cdm:Entity",
+            "@id":                f"cdm:{e['name']}",
+            "name":               e["name"],
+            "description":        e.get("description", ""),
+            "cdm:entityType":     e.get("type", "core"),
+            "cdm:attributes":     e.get("attributes", []),
+            "cdm:ontologyMatch":  e.get("ontology_matches", []),
+            "cdm:inferred":       e.get("inferred", False),
         })
 
     relationships_ld = []
     for r in result.get("relationships", []):
         relationships_ld.append({
-            "@type": "cdm:Relationship",
-            "cdm:fromEntity": {"@id": f"cdm:{r['from_entity']}"},
-            "cdm:toEntity": {"@id": f"cdm:{r['to_entity']}"},
-            "cdm:label": r.get("label", ""),
+            "@type":           "cdm:Relationship",
+            "cdm:fromEntity":  {"@id": f"cdm:{r['from_entity']}"},
+            "cdm:toEntity":    {"@id": f"cdm:{r['to_entity']}"},
+            "cdm:label":       r.get("label", ""),
             "cdm:cardinality": r.get("cardinality", ""),
-            "cdm:required": r.get("required", False),
-            "cdm:ontologyType": r.get("ontology_type", ""),
+            "cdm:required":    r.get("required", False),
+            "cdm:ontologyType":r.get("ontology_type", ""),
+            "cdm:inferred":    r.get("inferred", False),
         })
 
     return {
         **context,
-        "@type": "cdm:ConceptualDataModel",
-        "name": result.get("document_title", "CDM"),
-        "cdm:entities": entities_ld,
-        "cdm:relationships": relationships_ld,
-        "cdm:stats": result.get("stats", {}),
+        "@type":               "cdm:ConceptualDataModel",
+        "name":                result.get("document_title", "CDM"),
+        "cdm:entities":        entities_ld,
+        "cdm:relationships":   relationships_ld,
+        "cdm:stats":           result.get("stats", {}),
     }

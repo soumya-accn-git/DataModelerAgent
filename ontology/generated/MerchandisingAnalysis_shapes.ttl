@@ -1,0 +1,136 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix cdm: <https://example.org/cdm/MerchandisingAnalysis#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# ── SHACL Shapes for MerchandisingAnalysis CDM ─────────────────────────────────────
+
+# Global entity name pattern shape
+cdm:EntityNameShape a sh:NodeShape ;
+    sh:targetClass cdm:DimensionEntity, cdm:FactEntity, cdm:ReferenceEntity ;
+    sh:property [
+        sh:path cdm:name ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[A-Z][A-Za-z0-9]*$" ;
+        sh:message "Entity name must be PascalCase (sh:pattern violation)" ;
+    ] ;
+    sh:property [
+        sh:path cdm:description ;
+        sh:minCount 1 ;
+        sh:minLength 5 ;
+        sh:message "Entity must have a description of at least 5 characters" ;
+    ] .
+
+cdm:CustomerDimensionShape a sh:NodeShape ;
+    sh:targetClass cdm:CustomerDimension ;
+    sh:closed false ;
+    sh:message "Shape validation for CustomerDimension" .
+
+cdm:GeographyDimensionShape a sh:NodeShape ;
+    sh:targetClass cdm:GeographyDimension ;
+    sh:closed false ;
+    sh:message "Shape validation for GeographyDimension" .
+
+cdm:ProductCategoryShape a sh:NodeShape ;
+    sh:targetClass cdm:ProductCategory ;
+    sh:closed false ;
+    sh:message "Shape validation for ProductCategory" .
+
+cdm:OrganizationDimensionShape a sh:NodeShape ;
+    sh:targetClass cdm:OrganizationDimension ;
+    sh:closed false ;
+    sh:message "Shape validation for OrganizationDimension" .
+
+cdm:SaleFactShape a sh:NodeShape ;
+    sh:targetClass cdm:SaleFact ;
+    sh:property [
+        sh:path cdm:effectiveDate ;
+        sh:datatype xsd:date ;
+        sh:name "Effective Date" ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path cdm:SaleFact_amount ;
+        sh:datatype xsd:decimal ;
+        sh:name "amount" ;
+    ] ;
+    sh:property [
+        sh:path cdm:SaleFact_quantity ;
+        sh:datatype xsd:decimal ;
+        sh:name "quantity" ;
+    ] ;
+    sh:message "Shape validation for SaleFact" .
+
+cdm:MarkdownFactShape a sh:NodeShape ;
+    sh:targetClass cdm:MarkdownFact ;
+    sh:property [
+        sh:path cdm:effectiveDate ;
+        sh:datatype xsd:date ;
+        sh:name "Effective Date" ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path cdm:MarkdownFact_amount ;
+        sh:datatype xsd:decimal ;
+        sh:name "amount" ;
+    ] ;
+    sh:property [
+        sh:path cdm:MarkdownFact_quantity ;
+        sh:datatype xsd:decimal ;
+        sh:name "quantity" ;
+    ] ;
+    sh:message "Shape validation for MarkdownFact" .
+
+# ── Forbidden entity name constraints ───────────────────────────────────────
+cdm:ForbiddenNamesShape a sh:NodeShape ;
+    sh:targetClass cdm:DimensionEntity, cdm:FactEntity, cdm:ReferenceEntity ;
+    sh:not [
+        sh:property [
+            sh:path cdm:name ;
+            sh:hasValue "CustomerAnalysis" ;
+        ] ;
+    ] ;
+    sh:not [
+        sh:property [
+            sh:path cdm:name ;
+            sh:hasValue "MarketBasketAnalysis" ;
+        ] ;
+    ] ;
+    sh:not [
+        sh:property [
+            sh:path cdm:name ;
+            sh:hasValue "Consumer" ;
+        ] ;
+    ] ;
+    sh:not [
+        sh:property [
+            sh:path cdm:name ;
+            sh:hasValue "Cluster" ;
+        ] ;
+    ] ;
+    sh:not [
+        sh:property [
+            sh:path cdm:name ;
+            sh:hasValue "Wholesale" ;
+        ] ;
+    ] ;
+    sh:not [
+        sh:property [
+            sh:path cdm:name ;
+            sh:hasValue "Inventory" ;
+        ] ;
+    ] ;
+    sh:not [
+        sh:property [
+            sh:path cdm:name ;
+            sh:hasValue "Supplier" ;
+        ] ;
+    ] ;
+    sh:not [
+        sh:property [
+            sh:path cdm:name ;
+            sh:hasValue "CustomerOrder" ;
+        ] ;
+    ] ;
+    sh:message "Entity matches a forbidden pattern from the BRD" .

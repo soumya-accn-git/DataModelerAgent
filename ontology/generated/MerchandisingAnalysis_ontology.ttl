@@ -1,0 +1,93 @@
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix cdm: <https://example.org/cdm/MerchandisingAnalysis#> .
+@prefix schema: <https://schema.org/> .
+
+# ── Ontology declaration ────────────────────────────────────────────────────
+cdm:MerchandisingAnalysisOntology
+    a owl:Ontology ;
+    rdfs:label "MerchandisingAnalysis Conceptual Data Model Ontology" ;
+    rdfs:comment "Provides merchandising-specific business intelligence within Oracle Retail Insights." .
+
+# ── Base classes ─────────────────────────────────────────────────────────────
+cdm:DimensionEntity a owl:Class ;
+    rdfs:label "Dimension Entity" ;
+    rdfs:comment "A descriptive axis used to slice and filter facts." .
+
+cdm:FactEntity a owl:Class ;
+    rdfs:label "Fact Entity" ;
+    rdfs:comment "A measurable business event or transaction." .
+
+cdm:ReferenceEntity a owl:Class ;
+    rdfs:label "Reference Entity" ;
+    rdfs:comment "A lookup or classification table." .
+
+cdm:BridgeEntity a owl:Class ;
+    rdfs:label "Bridge Entity" ;
+    rdfs:comment "Resolves M:N between two dimensions." .
+
+# ── Dimension classes ────────────────────────────────────────────────────────
+cdm:CustomerDimension a owl:Class ;
+    rdfs:subClassOf cdm:DimensionEntity ;
+    rdfs:label "Customer" ;
+    rdfs:comment "Represents customers in the system." .
+
+cdm:GeographyDimension a owl:Class ;
+    rdfs:subClassOf cdm:DimensionEntity ;
+    rdfs:label "Location" ;
+    rdfs:comment "Represents geographical locations in the system." .
+
+cdm:ProductCategory a owl:Class ;
+    rdfs:subClassOf cdm:DimensionEntity ;
+    rdfs:label "Product Category" ;
+    rdfs:comment "Categories of products sold." .
+
+cdm:OrganizationDimension a owl:Class ;
+    rdfs:subClassOf cdm:DimensionEntity ;
+    rdfs:label "Organization" ;
+    rdfs:comment "Represents the organizational hierarchy in the system." .
+
+# ── Fact classes ─────────────────────────────────────────────────────────────
+cdm:SaleFact a owl:Class ;
+    rdfs:subClassOf cdm:FactEntity ;
+    rdfs:label "Sale" ;
+    rdfs:comment "Represents a sale transaction." .
+
+cdm:SaleFact_amount a owl:DatatypeProperty ;
+    rdfs:domain cdm:SaleFact ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "amount" .
+
+cdm:SaleFact_quantity a owl:DatatypeProperty ;
+    rdfs:domain cdm:SaleFact ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "quantity" .
+
+cdm:MarkdownFact a owl:Class ;
+    rdfs:subClassOf cdm:FactEntity ;
+    rdfs:label "Markdown" ;
+    rdfs:comment "Represents markdown transactions." .
+
+cdm:MarkdownFact_amount a owl:DatatypeProperty ;
+    rdfs:domain cdm:MarkdownFact ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "amount" .
+
+cdm:MarkdownFact_quantity a owl:DatatypeProperty ;
+    rdfs:domain cdm:MarkdownFact ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "quantity" .
+
+# ── Object properties (relationships) ───────────────────────────────────────
+cdm:belongsTo a owl:ObjectProperty ;
+    rdfs:domain cdm:SaleFact ;
+    rdfs:range cdm:ProductCategory ;
+    rdfs:label "belongsTo" .
+
+cdm:occursIn a owl:ObjectProperty ;
+    rdfs:domain cdm:SaleFact ;
+    rdfs:range cdm:GeographyDimension ;
+    rdfs:label "occursIn" .
