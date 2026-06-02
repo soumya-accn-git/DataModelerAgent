@@ -89,5 +89,8 @@
       "filter_name": "RegionFilter",
       "implied_dimension": "GeographyDimension"
     }
-  ]
+  ],
+  "_owl_path": "C:\\Agents\\DataModelerAgent\\ontology\\generated\\MerchandisingAnalysis_ontology.ttl",
+  "_shacl_path": "C:\\Agents\\DataModelerAgent\\ontology\\generated\\MerchandisingAnalysis_shapes.ttl",
+  "_domain_name": "MerchandisingAnalysis"
 }

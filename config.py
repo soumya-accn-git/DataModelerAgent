@@ -1,0 +1,56 @@
+"""
+Central configuration for DataModelerAgent.
+
+Credentials are loaded in this priority order:
+  1. System environment variables (highest priority)
+  2. .env file (if present)
+  3. Neo4j_instance_detl.txt (Aura connection file — authoritative source)
+  4. Hardcoded defaults (lowest priority)
+
+To update Neo4j credentials: edit Neo4j_instance_detl.txt
+"""
+
+import os
+import re
+
+ROOT_DIR = os.path.dirname(__file__)
+
+
+# ── File loader ───────────────────────────────────────────────────────────────
+
+def _load_file(filename: str) -> None:
+    """Load KEY=VALUE pairs from a file into os.environ (no overwrite)."""
+    path = os.path.join(ROOT_DIR, filename)
+    if not os.path.exists(path):
+        return
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            # Skip comments and blank lines
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, val = line.partition("=")
+            key = key.strip()
+            val = val.strip()
+            if key not in os.environ:
+                os.environ[key] = val
+
+
+# Load in reverse priority (later = higher priority, won't overwrite earlier)
+_load_file("Neo4j_instance_detl.txt")   # Aura connection file
+_load_file(".env")                        # local overrides
+
+
+# ── Neo4j Aura (from Neo4j_instance_detl.txt) ─────────────────────────────────
+NEO4J_URI         = os.environ.get("NEO4J_URI",           "neo4j+s://2f8b84a7.databases.neo4j.io")
+NEO4J_USER        = os.environ.get("NEO4J_USERNAME",      "2f8b84a7")
+NEO4J_PASSWORD    = os.environ.get("NEO4J_PASSWORD",      "")
+NEO4J_DATABASE    = os.environ.get("NEO4J_DATABASE",      "2f8b84a7")
+AURA_INSTANCEID   = os.environ.get("AURA_INSTANCEID",     "2f8b84a7")
+AURA_INSTANCENAME = os.environ.get("AURA_INSTANCENAME",   "Instance01")
+
+# ── Ollama ────────────────────────────────────────────────────────────────────
+OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
+
+# ── ChromaDB ──────────────────────────────────────────────────────────────────
+CHROMA_PATH = os.environ.get("CHROMA_PATH", "./chroma_db")

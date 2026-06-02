@@ -88,7 +88,7 @@ cdm:ForbiddenNamesShape a sh:NodeShape ;
     sh:not [
         sh:property [
             sh:path cdm:name ;
-            sh:hasValue "CustomerAnalysis" ;
+            sh:hasValue "ConsumerAnalysis" ;
         ] ;
     ] ;
     sh:not [
@@ -100,7 +100,7 @@ cdm:ForbiddenNamesShape a sh:NodeShape ;
     sh:not [
         sh:property [
             sh:path cdm:name ;
-            sh:hasValue "Consumer" ;
+            sh:hasValue "Customer" ;
         ] ;
     ] ;
     sh:not [

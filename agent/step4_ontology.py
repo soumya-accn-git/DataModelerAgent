@@ -4,6 +4,8 @@ Queries ChromaDB to find matching ontology concepts for each entity and relation
 Uses sentence-level embedding similarity (ChromaDB default: all-MiniLM-L6-v2).
 """
 
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 import chromadb
 from chromadb.utils import embedding_functions
 
@@ -11,14 +13,36 @@ from chromadb.utils import embedding_functions
 COLLECTION_NAME = "ontology_concepts"
 
 
+def _get_embedding_function():
+    """
+    Return the best available embedding function.
+    Tries in order:
+      1. ONNXMiniLM (fast, no torchvision needed)
+      2. DefaultEmbeddingFunction (requires sentence-transformers + torchvision)
+      3. None (fallback — ChromaDB uses its own internal embedder)
+    """
+    try:
+        return embedding_functions.ONNXMiniLM_L6_V2()
+    except Exception:
+        pass
+    try:
+        return embedding_functions.DefaultEmbeddingFunction()
+    except Exception:
+        pass
+    return None
+
+
 def _get_collection(chroma_path: str):
     client = chromadb.PersistentClient(path=chroma_path)
-    ef = embedding_functions.DefaultEmbeddingFunction()
+    ef = _get_embedding_function()
     try:
-        collection = client.get_collection(
-            name=COLLECTION_NAME,
-            embedding_function=ef,
-        )
+        if ef:
+            collection = client.get_collection(
+                name=COLLECTION_NAME,
+                embedding_function=ef,
+            )
+        else:
+            collection = client.get_collection(name=COLLECTION_NAME)
         return collection
     except Exception:
         return None

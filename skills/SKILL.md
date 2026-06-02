@@ -27,11 +27,46 @@ The following are NOT entities — they must NEVER appear in the entity list:
 |----------------|---------|--------|
 | Report names   | SalesReport, CMODashboard, ConsumerSpendingAnalysisReport | Derived outputs, not data entities |
 | Dashboard names| ExecutiveDashboard, MarketingPortal, KPIDashboard | UI views, not data entities |
-| Filter / prompt names | Top10Filter, DateRangePrompt, RegionFilter | Query parameters, not entities |
+| Top-N / ranking names | Top10, TopN, Rank, Limit | Rankings are not dimensions |
 | Metric / KPI names | RevenueGrowthRate, NPS, ARPU | These are attributes of a Fact entity |
 | Column / field names | CustomerName, OrderDate, ProductID | These are attributes, not entities |
 | Verb phrases | DataEntry, Reporting, Processing | Process steps, not entities |
 | Abbreviations alone | CMO, BRD, KPI, CRM | Not entities unless qualified |
+
+## 2a. EXPECTED FACT ENTITIES — retail merchandising BRD
+
+When the BRD describes a Merchandising Sales & Profit subject area, these fact
+entities MUST be extracted — do not miss any:
+
+| Fact entity         | What it measures                              |
+|---------------------|-----------------------------------------------|
+| `SalesFact`         | Daily sales, returns, net/gross profit        |
+| `MarkdownFact`      | Markdown amounts (clearance, promo, permanent)|
+| `MarkupFact`        | Markup amounts applied to items               |
+| `ProfitFact`        | Profit contribution metrics                   |
+| `SalesForecastFact` | Forecast quantities vs actuals                |
+| `SupplierCostFact`  | Supplier cost tiers (base/net/net-net/dead)   |
+
+These are SEPARATE fact entities — do not merge them into one.
+Each represents a different business process at a different grain.
+
+## 2b. FILTER/PROMPT → DIMENSION RULE
+
+Filter and Prompt names are NOT forbidden — they imply Dimension entities.
+When a filter or prompt is found in the BRD:
+  DO NOT return it as a Filter or Prompt entity
+  DO infer and return the underlying Dimension entity
+
+Examples:
+  RegionFilter        → GeographyDimension
+  DateRangePrompt     → TimeDimension
+  ProductCategoryFilter → ProductDimension
+  StoreSelector       → StoreDimension
+  WeekPrompt          → TimeDimension
+  DepartmentFilter    → ProductDimension
+
+Exception — Top-N and ranking filters have NO implied dimension:
+  Top10Filter, TopNRanking, LimitPrompt → DISCARD (not a dimension)
 
 ## 3. ENTITY NAMING RULES (SHACL sh:pattern)
 
@@ -74,7 +109,7 @@ If a M:N relationship exists between two Dimensions, infer a Bridge entity.
 - Reference → Dimension or Fact: cardinality 1:N
 - Bridge → Dimension: cardinality N:1 on both sides
 - MUST use verb phrases: `has`, `belongs to`, `classifies`, `measures`
-- MUST NOT use: report names, filter names, or metric names as relationship endpoints
+- MUST NOT use: report names or metric names as relationship endpoints
 
 ## 6. VALIDATION CHECKLIST (SHACL shapes)
 
@@ -115,10 +150,10 @@ ProductCategory     (reference) — product classification
 ### BAD entities (must be rejected)
 ```
 ConsumerSpendingAnalysisReport  ← report name, FORBIDDEN
-Top10Customers                  ← filter/ranking, FORBIDDEN
+Top10Customers                  ← Top-N ranking, FORBIDDEN (not a dimension)
 RevenueGrowthRate               ← metric, FORBIDDEN (attribute of SpendingFact)
 CMODashboard                    ← dashboard name, FORBIDDEN
-DateRangeFilter                 ← filter, FORBIDDEN
+DateRangeFilter                 ← infer TimeDimension from this (Rule R6)
 ```
 
 ## 9. FILTER/PROMPT → DIMENSION INFERENCE RULES (OWL Rule R6)

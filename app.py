@@ -2,6 +2,10 @@ import sys, os
 sys.path.insert(0, os.path.dirname(__file__))
 
 import streamlit as st
+from config import (
+    NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, NEO4J_DATABASE,
+    AURA_INSTANCENAME, OLLAMA_URL, CHROMA_PATH,
+)
 
 st.set_page_config(
     page_title="DataModelerAgent",
@@ -13,7 +17,7 @@ st.markdown("""
 <style>
 /* Tighten global spacing */
 .block-container {
-    padding-top: 1rem !important;
+    padding-top: 4.5rem !important;
     padding-bottom: 0.5rem !important;
     padding-left: 1.5rem !important;
     padding-right: 1.5rem !important;
@@ -78,16 +82,19 @@ from ui.output import render_output
 
 def main():
     defaults = {
-        "pipeline_result": None,
-        "pipeline_running": False,
-        "use_cache": False,
-        "previous_brd_hash": None,
+        "pipeline_result":        None,
+        "ldm_result":             None,
+        "pipeline_running":       False,
+        "use_cache":              False,
+        "previous_brd_hash":      None,
         "cached_pipeline_result": None,
-        "ollama_url": "http://localhost:11434",
-        "ollama_model": "llama3.1:8b",
-        "chroma_path": "./chroma_db",
-        "temperature": 0.1,
-        "top_ontology_k": 3,
+        "pipeline_mode":          "CDM only",
+        "ollama_url":             OLLAMA_URL,
+        "ollama_model":           "llama3.1:8b",
+        "chroma_path":            CHROMA_PATH,
+        "temperature":            0.1,
+        "top_ontology_k":         3,
+        "max_chunks":             4,
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -101,8 +108,22 @@ def main():
     if st.session_state.get("pipeline_running") and st.session_state.get("trigger_file"):
         render_pipeline(st.session_state["trigger_file"])
 
-    if st.session_state.pipeline_result:
-        render_output(st.session_state.pipeline_result)
+    # Show output when CDM result exists OR when LDM result exists (LDM-only mode)
+    cdm_result = st.session_state.get("pipeline_result")
+    ldm_result = st.session_state.get("ldm_result")
+
+    if cdm_result:
+        render_output(cdm_result)
+    elif ldm_result:
+        # LDM-only mode: no CDM result but LDM exists — show minimal CDM wrapper
+        placeholder_cdm = {
+            "entities": [],
+            "relationships": [],
+            "stats": {"entity_count": 0, "relationship_count": 0},
+            "domain": {"name": "LDM only mode", "description": ""},
+            "sections": [],
+        }
+        render_output(placeholder_cdm)
 
 if __name__ == "__main__":
     main()

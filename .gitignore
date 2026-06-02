@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Vector store (binary, regenerated at runtime)
+chroma_db/
+
+# Archives / binaries
+*.zip
+*.pptx
+
+# Secrets / local config
+.env
+Neo4j_instance_detl.txt
+Some details.txt

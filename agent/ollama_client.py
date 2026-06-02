@@ -36,7 +36,7 @@ def chat(
     resp = requests.post(
         f"{base_url}/api/chat",
         json=payload,
-        timeout=900,
+        timeout=1800,
     )
     resp.raise_for_status()
     data = resp.json()

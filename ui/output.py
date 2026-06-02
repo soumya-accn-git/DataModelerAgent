@@ -4,6 +4,8 @@ import streamlit as st
 import json
 import pandas as pd
 from agent.cdm_builder import result_to_mermaid, result_to_jsonld
+from ui.graph_view import render_graph
+from ui.ldm_output import render_ldm_output
 
 TYPE_BADGES = {
     "core":       ("badge-core",       "🔵 Core"),
@@ -11,9 +13,11 @@ TYPE_BADGES = {
     "reference":  ("badge-reference",  "⚪ Reference"),
     "event":      ("badge-event",      "🟡 Event"),
     "dimension":  ("badge-dimension",  "🟢 Dimension"),
+    "fact":       ("badge-fact",       "🔴 Fact"),
     "metric":     ("badge-metric",     "🔴 Metric"),
     "report":     ("badge-report",     "🟠 Report"),
     "filter":     ("badge-filter",     "🔷 Filter"),
+    "bridge":     ("badge-bridge",     "🟣 Bridge"),
 }
 
 def render_output(result: dict):
@@ -31,21 +35,113 @@ def render_output(result: dict):
     with c4: st.metric("SHACL issues",  len(violations), help="SHACL shape validation results")
     with c5: st.metric("Sections",      stats.get("section_count","—"))
 
-    tab_domain, tab_diagram, tab_entities, tab_relations, tab_owl, tab_json = st.tabs([
+    # LDM result from session state
+    ldm_result = st.session_state.get("ldm_result")
+
+    # Tab order: Pipeline, Domain, Graph, Entities, Relationships, CDM, LDM, OWL/SHACL, JSON-LD
+    tab_names = [
+        "⚡  Pipeline",
         "🧬  Domain",
-        "🗺️  Diagram",
+        "🕸️  Graph",
         "📦  Entities",
         "🔗  Relationships",
+        "🗺️  CDM",
         "🦉  OWL / SHACL",
         "📋  JSON-LD",
-    ])
+    ]
+    if ldm_result:
+        tab_names.insert(6, "🏛️  LDM")
 
-    with tab_domain:    _render_domain(result)
-    with tab_diagram:   _render_diagram(result)
-    with tab_entities:  _render_entities(result)
-    with tab_relations: _render_relationships(result)
-    with tab_owl:       _render_owl(result)
-    with tab_json:      _render_jsonld(result)
+    tabs = st.tabs(tab_names)
+    tab_iter = iter(tabs)
+
+    with next(tab_iter): _render_pipeline_summary(result)
+    with next(tab_iter): _render_domain(result)
+    with next(tab_iter): render_graph(result)
+    with next(tab_iter): _render_entities(result)
+    with next(tab_iter): _render_relationships(result)
+    with next(tab_iter): _render_diagram(result)
+    if ldm_result:
+        with next(tab_iter): render_ldm_output(ldm_result)
+    with next(tab_iter): _render_owl(result)
+    with next(tab_iter): _render_jsonld(result)
+
+
+def _render_pipeline_summary(result: dict):
+    timing = result.get("_pipeline_timing", {})
+    steps  = timing.get("steps", [])
+    total  = timing.get("total_duration", 0)
+
+    if not steps:
+        st.info("Pipeline timing not available. Re-run the pipeline to see step details.")
+        return
+
+    # ── Total duration banner ──────────────────────────────────────────────
+    def _fmt(s):
+        if s < 1:   return f"{s*1000:.0f}ms"
+        if s < 60:  return f"{s:.1f}s"
+        m, sec = divmod(int(s), 60)
+        return f"{m}m {sec}s"
+
+    st.markdown(
+        f"<div style=\"padding:12px 16px;background:var(--color-background-secondary);"
+        f"border-radius:8px;border:1px solid var(--color-border-tertiary);"
+        f"margin-bottom:12px;\">"
+        f"<span style=\"font-size:1.1rem;font-weight:600\">Total runtime: {_fmt(total)}</span>"
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+
+    # ── Step-by-step table ─────────────────────────────────────────────────
+    longest = max((s["duration"] for s in steps), default=1) or 1
+
+    for step in steps:
+        idx  = step["idx"]
+        icon = step["icon"]
+        name = step["name"]
+        dur  = step["duration"]
+        pct  = dur / longest if longest > 0 else 0
+
+        col_icon, col_name, col_bar, col_dur = st.columns([0.5, 2.5, 5, 1.5])
+
+        with col_icon:
+            st.markdown(f"<div style=\"font-size:1.2rem;padding-top:4px\">{icon}</div>",
+                        unsafe_allow_html=True)
+        with col_name:
+            st.markdown(
+                f"<div style=\"padding-top:6px;font-size:0.88rem;font-weight:500\">"
+                f"Step {idx+1} · {name}</div>",
+                unsafe_allow_html=True,
+            )
+        with col_bar:
+            # Horizontal bar proportional to duration
+            color = "#1F6FEB" if dur > 0 else "#484F58"
+            bar_pct = max(int(pct * 100), 2)
+            st.markdown(
+                f"<div style=\"margin-top:8px;height:10px;border-radius:5px;"
+                f"background:var(--color-border-tertiary);overflow:hidden;\">"
+                f"<div style=\"width:{bar_pct}%;height:100%;background:{color};"
+                f"border-radius:5px;transition:width 0.3s\"></div></div>",
+                unsafe_allow_html=True,
+            )
+        with col_dur:
+            dur_str = _fmt(dur) if dur > 0 else "—"
+            st.markdown(
+                f"<div style=\"padding-top:4px;font-size:0.85rem;"
+                f"font-family:monospace;text-align:right\">{dur_str}</div>",
+                unsafe_allow_html=True,
+            )
+
+    # ── GraphRAG stats if available ────────────────────────────────────────
+    graphrag = result.get("graphrag", {})
+    if graphrag and graphrag.get("neo4j_available"):
+        st.divider()
+        st.markdown("**GraphRAG extraction summary**")
+        g1, g2, g3 = st.columns(3)
+        with g1: st.metric("Graph nodes extracted", graphrag.get("nodes_extracted", 0))
+        with g2: st.metric("Graph rels extracted",  graphrag.get("rels_extracted", 0))
+        with g3: st.metric("Context chars",         f"{graphrag.get('context_chars',0):,}")
+
 
 
 def _render_domain(result):
@@ -54,8 +150,10 @@ def _render_domain(result):
         st.info("No domain information available.")
         return
 
+    from_cache = domain.get("from_cache", False)
+    cache_badge = " ⚡ *(cached — BRD unchanged)*" if from_cache else " 🆕 *(built from this BRD)*"
     st.subheader(f"🧬 Domain: {domain.get('name','—')}")
-    st.caption(domain.get("description",""))
+    st.caption(domain.get("description","") + cache_badge)
 
     col1, col2 = st.columns(2)
     with col1:
@@ -92,20 +190,40 @@ def _render_domain(result):
 
     col3, col4 = st.columns(2)
     with col3:
-        st.markdown("**Expected dimensions**")
-        for d in domain.get("dimensions", []):
-            st.markdown(f"- 🟢 `{d}`")
+        forbidden = domain.get("forbidden_names", [])
+        if forbidden:
+            st.markdown("**Forbidden patterns (from BRD)**")
+            st.caption("Report/dashboard names excluded from CDM entities")
+            for name in forbidden:
+                st.markdown(f"- 🚫 `{name}`")
     with col4:
-        st.markdown("**Expected facts**")
-        for f in domain.get("facts", []):
-            st.markdown(f"- 🔴 `{f}`")
+        filter_to_dim = domain.get("filter_to_dim", [])
+        if filter_to_dim:
+            st.markdown("**Filter → Dimension mappings (Rule R6)**")
+            rows = [{"Filter/Prompt": m.get("filter",""), "→ Dimension": m.get("dimension","")} for m in filter_to_dim]
+            st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
 
-    filters = domain.get("filters", [])
-    if filters:
+    # GraphRAG info card
+    graphrag = result.get("graphrag", {})
+    if graphrag:
         st.divider()
-        st.markdown("**Filter → Dimension mappings (Rule R6)**")
-        rows = [{"Filter/Prompt": f.get("filter_name",""), "→ Dimension": f.get("implied_dimension","")} for f in filters]
-        st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+        st.markdown("**GraphRAG pipeline**")
+        g1, g2, g3, g4, g5, g6 = st.columns(6)
+        with g1:
+            neo4j_ok = graphrag.get("neo4j_available", False)
+            st.metric("Neo4j", "✅ Active" if neo4j_ok else "⚠️ Fallback")
+        with g2:
+            st.metric("Sections", graphrag.get("sections_loaded", 0))
+        with g3:
+            st.metric("Graph nodes", graphrag.get("nodes_extracted", 0),
+                      help="Nodes extracted by LLMGraphTransformer")
+        with g4:
+            st.metric("Graph rels", graphrag.get("rels_extracted", 0),
+                      help="Relationships extracted by LLMGraphTransformer")
+        with g5:
+            st.metric("Context chars", f"{graphrag.get('context_chars',0):,}")
+        with g6:
+            st.metric("Parser", graphrag.get("parser_used", "—"))
 
 
 

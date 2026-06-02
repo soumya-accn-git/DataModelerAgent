@@ -97,7 +97,12 @@ def seed_ontology(chroma_path: str) -> int:
         Number of concepts seeded.
     """
     client = chromadb.PersistentClient(path=chroma_path)
-    ef = embedding_functions.DefaultEmbeddingFunction()
+    # Use ONNX embedding (no torchvision needed)
+    # Falls back to Default if ONNX not available
+    try:
+        ef = embedding_functions.ONNXMiniLM_L6_V2()
+    except Exception:
+        ef = embedding_functions.DefaultEmbeddingFunction()
 
     # Drop and recreate for idempotency
     try:

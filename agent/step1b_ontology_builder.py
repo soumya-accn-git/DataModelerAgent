@@ -1,15 +1,23 @@
 """
-Step 1b — Dynamic Ontology Builder
+Step 1b — Slim ontology builder (fast pre-pass).
 
-Reads the BRD text and:
-1. Extracts domain-specific concepts, vocabulary, and business rules
-2. Generates a domain OWL ontology (Turtle/N3 format)
-3. Generates SHACL shapes for entity validation
-4. Updates the SKILL.md with BRD-specific guardrails
-5. Writes all outputs to ontology/generated/ folder
+Purpose: brief the entity extractor (Step 3) before it runs.
 
-This runs BEFORE entity extraction so all subsequent steps use
-BRD-specific rules rather than generic ones.
+Does exactly three things — all fast:
+  1. Extracts BRD-specific forbidden patterns (report/dashboard names)
+     and expected vocabulary (domain name, key subject areas) via a
+     single small LLM call.
+  2. Updates SKILL.md with these BRD-specific guardrails so Step 3
+     has an accurate forbidden list for this document.
+  3. Generates minimal OWL/SHACL stubs (no LLM needed — rule-based).
+
+What it no longer does:
+  - No full entity/concept extraction (Step 3 does this better)
+  - No large structured JSON output with all concepts
+  - No multi-section attribute enumeration
+
+Total LLM calls: 1 (small, fast)
+Expected runtime: 5-15 seconds
 """
 
 import sys, os, re, json
@@ -19,368 +27,178 @@ from agent.ollama_client import chat, extract_json
 GENERATED_DIR = os.path.join(
     os.path.dirname(os.path.dirname(__file__)), "ontology", "generated"
 )
-SKILL_PATH = os.path.join(
-    os.path.dirname(os.path.dirname(__file__)), "skills", "SKILL.md"
-)
-BASE_SKILL_PATH = os.path.join(
-    os.path.dirname(os.path.dirname(__file__)), "skills", "SKILL_BASE.md"
-)
+SKILL_PATH      = os.path.join(os.path.dirname(os.path.dirname(__file__)), "skills", "SKILL.md")
+BASE_SKILL_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "skills", "SKILL_BASE.md")
 
 os.makedirs(GENERATED_DIR, exist_ok=True)
 
-# ── Prompts ───────────────────────────────────────────────────────────────────
+# ── Single fast LLM call ──────────────────────────────────────────────────────
 
-SYSTEM_DOMAIN = """You are a senior ontology engineer. Analyse a Business Requirements
-Document and extract the domain vocabulary needed to build an OWL ontology and SHACL shapes.
+SYSTEM = """You are an experienced subject matter expert in Data Modeling, specifically in Dimensional Modeling and able to precisely design data models Ontology and Graph RAG. Use your knowledge and experience in modeling the DWH schema for CDM and LDM.
 
+You are doing a quick scan of a Business Requirements Document.
 Respond ONLY with valid JSON, no explanation, no markdown."""
 
-USER_DOMAIN = """Analyse this BRD and extract the domain ontology vocabulary.
+USER = """Scan this BRD and return a brief JSON with these keys:
 
-Return a JSON object with these keys:
+"domain_name": short PascalCase business domain name (e.g. "MerchandisingSalesProfit")
+"forbidden_names": list of exact report/dashboard/filter names from the BRD that should
+  NOT become CDM entities. Include: dashboard names, scorecard names, report names,
+  filter names, prompt names (e.g. ["MerchandisingScorecardReport", "MarkdownDashboard",
+  "Top10SaleItemsReport", "RegionFilter", "DateRangePrompt"])
+"subject_area": one sentence describing what this BRD covers
+"filter_to_dimension": list of objects mapping filter/prompt names to their implied
+  dimension entity name (e.g. [{{"filter": "RegionFilter", "dimension": "GeographyDimension"}}])
 
-"domain_name": short name for this business domain (e.g. "RetailBanking", "ConsumerGoods")
-"domain_description": one sentence describing the business domain
+Keep all lists SHORT — only the most important items. Max 10 forbidden_names.
 
-"dimension_concepts": list of objects — each a candidate Dimension entity:
-  {{"name": "CustomerDimension", "label": "Customer", "description": "...", "attributes": [...], "source": "section name"}}
-
-"fact_concepts": list of objects — each a candidate Fact entity:
-  {{"name": "SaleFact", "label": "Sale", "description": "...", "metrics": ["amount","quantity"], "source": "section name"}}
-
-"reference_concepts": list of objects — each a candidate Reference/lookup entity:
-  {{"name": "ProductCategory", "label": "Product Category", "description": "...", "source": "section name"}}
-
-"forbidden_patterns": list of strings — patterns found in this BRD that should be
-  rejected as entities (report names, dashboard names, filter names, metric names).
-  Example: ["ConsumerSpendingReport", "CMODashboard", "Top10Filter"]
-
-"domain_relationships": list of objects — key relationships specific to this domain:
-  {{"from": "CustomerDimension", "to": "SaleFact", "label": "makes", "cardinality": "1:N"}}
-
-"key_metrics": list of strings — measurable KPIs/metrics (these become attributes of Fact entities, NOT entities themselves)
-  Example: ["TotalRevenue", "UnitsSold", "AverageOrderValue"]
-
-"filters_and_prompts": list of objects — filters/prompts found in the BRD with their implied dimension:
-  {{"filter_name": "RegionFilter", "implied_dimension": "GeographyDimension"}}
-
-BRD TEXT:
+BRD TEXT (first 3000 chars):
 ---
 {brd_text}
 ---
 JSON:"""
 
 
-# ── OWL Turtle generator ──────────────────────────────────────────────────────
-
-def _generate_owl(domain: dict) -> str:
-    """Generate an OWL ontology in Turtle format from the domain vocabulary."""
-    domain_name = domain.get("domain_name", "BusinessDomain")
-    domain_desc = domain.get("domain_description", "")
-
-    lines = [
-        f"@prefix owl: <http://www.w3.org/2002/07/owl#> .",
-        f"@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .",
-        f"@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .",
-        f"@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .",
-        f"@prefix sh: <http://www.w3.org/ns/shacl#> .",
-        f"@prefix cdm: <https://example.org/cdm/{domain_name}#> .",
-        f"@prefix schema: <https://schema.org/> .",
-        f"",
-        f"# ── Ontology declaration ────────────────────────────────────────────────────",
-        f"cdm:{domain_name}Ontology",
-        f"    a owl:Ontology ;",
-        f'    rdfs:label "{domain_name} Conceptual Data Model Ontology" ;',
-        f'    rdfs:comment "{domain_desc}" .',
-        f"",
-        f"# ── Base classes ─────────────────────────────────────────────────────────────",
-        f"cdm:DimensionEntity a owl:Class ;",
-        f'    rdfs:label "Dimension Entity" ;',
-        f'    rdfs:comment "A descriptive axis used to slice and filter facts." .',
-        f"",
-        f"cdm:FactEntity a owl:Class ;",
-        f'    rdfs:label "Fact Entity" ;',
-        f'    rdfs:comment "A measurable business event or transaction." .',
-        f"",
-        f"cdm:ReferenceEntity a owl:Class ;",
-        f'    rdfs:label "Reference Entity" ;',
-        f'    rdfs:comment "A lookup or classification table." .',
-        f"",
-        f"cdm:BridgeEntity a owl:Class ;",
-        f'    rdfs:label "Bridge Entity" ;',
-        f'    rdfs:comment "Resolves M:N between two dimensions." .',
-        f"",
-    ]
-
-    # Dimension classes
-    if domain.get("dimension_concepts"):
-        lines.append("# ── Dimension classes ────────────────────────────────────────────────────────")
-        for d in domain["dimension_concepts"]:
-            name = d.get("name","").strip()
-            if not name: continue
-            label = d.get("label", name)
-            desc  = d.get("description","").replace('"',"'")
-            lines += [
-                f"cdm:{name} a owl:Class ;",
-                f"    rdfs:subClassOf cdm:DimensionEntity ;",
-                f'    rdfs:label "{label}" ;',
-                f'    rdfs:comment "{desc}" .',
-                f"",
-            ]
-            for attr in d.get("attributes", [])[:5]:
-                attr_clean = re.sub(r'[^A-Za-z0-9]', '', attr)
-                lines += [
-                    f"cdm:{name}_{attr_clean} a owl:DatatypeProperty ;",
-                    f"    rdfs:domain cdm:{name} ;",
-                    f"    rdfs:range xsd:string ;",
-                    f'    rdfs:label "{attr}" .',
-                    f"",
-                ]
-
-    # Fact classes
-    if domain.get("fact_concepts"):
-        lines.append("# ── Fact classes ─────────────────────────────────────────────────────────────")
-        for f in domain["fact_concepts"]:
-            name = f.get("name","").strip()
-            if not name: continue
-            label = f.get("label", name)
-            desc  = f.get("description","").replace('"',"'")
-            lines += [
-                f"cdm:{name} a owl:Class ;",
-                f"    rdfs:subClassOf cdm:FactEntity ;",
-                f'    rdfs:label "{label}" ;',
-                f'    rdfs:comment "{desc}" .',
-                f"",
-            ]
-            for metric in f.get("metrics", [])[:5]:
-                metric_clean = re.sub(r'[^A-Za-z0-9]', '', metric)
-                lines += [
-                    f"cdm:{name}_{metric_clean} a owl:DatatypeProperty ;",
-                    f"    rdfs:domain cdm:{name} ;",
-                    f"    rdfs:range xsd:decimal ;",
-                    f'    rdfs:label "{metric}" .',
-                    f"",
-                ]
-
-    # Reference classes
-    if domain.get("reference_concepts"):
-        lines.append("# ── Reference classes ────────────────────────────────────────────────────────")
-        for r in domain["reference_concepts"]:
-            name = r.get("name","").strip()
-            if not name: continue
-            label = r.get("label", name)
-            desc  = r.get("description","").replace('"',"'")
-            lines += [
-                f"cdm:{name} a owl:Class ;",
-                f"    rdfs:subClassOf cdm:ReferenceEntity ;",
-                f'    rdfs:label "{label}" ;',
-                f'    rdfs:comment "{desc}" .',
-                f"",
-            ]
-
-    # Object properties (relationships)
-    if domain.get("domain_relationships"):
-        lines.append("# ── Object properties (relationships) ───────────────────────────────────────")
-        for rel in domain["domain_relationships"]:
-            from_e = rel.get("from","").strip()
-            to_e   = rel.get("to","").strip()
-            label  = rel.get("label","relatesTo")
-            prop_name = re.sub(r'[^A-Za-z0-9]', '', label)
-            if not from_e or not to_e: continue
-            lines += [
-                f"cdm:{prop_name} a owl:ObjectProperty ;",
-                f"    rdfs:domain cdm:{from_e} ;",
-                f"    rdfs:range cdm:{to_e} ;",
-                f'    rdfs:label "{label}" .',
-                f"",
-            ]
-
-    return "\n".join(lines)
-
-
-# ── SHACL shapes generator ────────────────────────────────────────────────────
-
-def _generate_shacl(domain: dict) -> str:
-    """Generate SHACL node shapes for all domain entities."""
-    domain_name = domain.get("domain_name", "BusinessDomain")
-
-    lines = [
-        f"@prefix sh: <http://www.w3.org/ns/shacl#> .",
-        f"@prefix cdm: <https://example.org/cdm/{domain_name}#> .",
-        f"@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .",
-        f"@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .",
-        f"",
-        f"# ── SHACL Shapes for {domain_name} CDM ─────────────────────────────────────",
-        f"",
-        f"# Global entity name pattern shape",
-        f"cdm:EntityNameShape a sh:NodeShape ;",
-        f"    sh:targetClass cdm:DimensionEntity, cdm:FactEntity, cdm:ReferenceEntity ;",
-        f"    sh:property [",
-        f"        sh:path cdm:name ;",
-        f"        sh:minCount 1 ;",
-        f"        sh:datatype xsd:string ;",
-        f'        sh:pattern "^[A-Z][A-Za-z0-9]*$" ;',
-        f'        sh:message "Entity name must be PascalCase (sh:pattern violation)" ;',
-        f"    ] ;",
-        f"    sh:property [",
-        f"        sh:path cdm:description ;",
-        f"        sh:minCount 1 ;",
-        f"        sh:minLength 5 ;",
-        f'        sh:message "Entity must have a description of at least 5 characters" ;',
-        f"    ] .",
-        f"",
-    ]
-
-    # Dimension shapes
-    for d in domain.get("dimension_concepts", []):
-        name = d.get("name","").strip()
-        if not name: continue
-        attrs = d.get("attributes", [])
-        lines += [
-            f"cdm:{name}Shape a sh:NodeShape ;",
-            f"    sh:targetClass cdm:{name} ;",
-            f"    sh:closed false ;",
-        ]
-        for attr in attrs[:3]:
-            attr_clean = re.sub(r'[^A-Za-z0-9]', '', attr)
-            lines += [
-                f"    sh:property [",
-                f"        sh:path cdm:{name}_{attr_clean} ;",
-                f"        sh:datatype xsd:string ;",
-                f'        sh:name "{attr}" ;',
-                f"    ] ;",
-            ]
-        lines += [f"    sh:message \"Shape validation for {name}\" .", ""]
-
-    # Fact shapes
-    for f in domain.get("fact_concepts", []):
-        name = f.get("name","").strip()
-        if not name: continue
-        metrics = f.get("metrics", [])
-        lines += [
-            f"cdm:{name}Shape a sh:NodeShape ;",
-            f"    sh:targetClass cdm:{name} ;",
-            f"    sh:property [",
-            f"        sh:path cdm:effectiveDate ;",
-            f"        sh:datatype xsd:date ;",
-            f'        sh:name "Effective Date" ;',
-            f"        sh:minCount 1 ;",
-            f"    ] ;",
-        ]
-        for metric in metrics[:3]:
-            metric_clean = re.sub(r'[^A-Za-z0-9]', '', metric)
-            lines += [
-                f"    sh:property [",
-                f"        sh:path cdm:{name}_{metric_clean} ;",
-                f"        sh:datatype xsd:decimal ;",
-                f'        sh:name "{metric}" ;',
-                f"    ] ;",
-            ]
-        lines += [f"    sh:message \"Shape validation for {name}\" .", ""]
-
-    # Forbidden pattern shapes
-    forbidden = domain.get("forbidden_patterns", [])
-    if forbidden:
-        lines += [
-            f"# ── Forbidden entity name constraints ───────────────────────────────────────",
-            f"cdm:ForbiddenNamesShape a sh:NodeShape ;",
-            f"    sh:targetClass cdm:DimensionEntity, cdm:FactEntity, cdm:ReferenceEntity ;",
-        ]
-        for fp in forbidden[:10]:
-            fp_clean = fp.replace('"',"'")
-            lines += [
-                f"    sh:not [",
-                f"        sh:property [",
-                f"            sh:path cdm:name ;",
-                f'            sh:hasValue "{fp_clean}" ;',
-                f"        ] ;",
-                f"    ] ;",
-            ]
-        lines += [f"    sh:message \"Entity matches a forbidden pattern from the BRD\" .", ""]
-
-    return "\n".join(lines)
-
-
 # ── SKILL.md updater ──────────────────────────────────────────────────────────
 
-def _update_skill_md(domain: dict) -> str:
-    """Generate a BRD-specific SKILL.md section to append to the base skill."""
+def _update_skill_md(domain: dict) -> None:
+    """Append BRD-specific forbidden names and filter mappings to SKILL.md."""
+    domain_name   = domain.get("domain_name", "UnknownDomain")
+    forbidden     = domain.get("forbidden_names", [])
+    filter_to_dim = domain.get("filter_to_dimension", [])
+    subject_area  = domain.get("subject_area", "")
 
-    domain_name = domain.get("domain_name", "BusinessDomain")
-    dim_names   = [d.get("name","") for d in domain.get("dimension_concepts", [])]
-    fact_names  = [f.get("name","") for f in domain.get("fact_concepts", [])]
-    ref_names   = [r.get("name","") for r in domain.get("reference_concepts", [])]
-    forbidden   = domain.get("forbidden_patterns", [])
-    metrics     = domain.get("key_metrics", [])
-    filters     = domain.get("filters_and_prompts", [])
+    # Read base SKILL.md (without previous BRD-specific section)
+    base = ""
+    if os.path.exists(BASE_SKILL_PATH):
+        with open(BASE_SKILL_PATH, "r", encoding="utf-8") as f:
+            base = f.read()
+    elif os.path.exists(SKILL_PATH):
+        with open(SKILL_PATH, "r", encoding="utf-8") as f:
+            content = f.read()
+        marker = "\n---\n\n## BRD-SPECIFIC RULES"
+        idx = content.find(marker)
+        base = content[:idx] if idx != -1 else content
+        with open(BASE_SKILL_PATH, "w", encoding="utf-8") as f:
+            f.write(base)
 
     lines = [
-        f"",
-        f"---",
-        f"",
+        "",
+        "---",
+        "",
         f"## BRD-SPECIFIC RULES — {domain_name}",
-        f"*Auto-generated by Step 1b from the uploaded BRD*",
-        f"",
-        f"### Expected Dimension entities",
+        f"*Auto-generated by Step 1b — {subject_area}*",
+        "",
     ]
-    for n in dim_names:
-        lines.append(f"- `{n}`")
-
-    lines += ["", "### Expected Fact entities"]
-    for n in fact_names:
-        lines.append(f"- `{n}`")
-
-    lines += ["", "### Expected Reference entities"]
-    for n in ref_names:
-        lines.append(f"- `{n}`")
 
     if forbidden:
-        lines += ["", "### BRD-specific forbidden patterns (MUST NOT become entities)"]
-        for fp in forbidden:
-            lines.append(f"- `{fp}`")
+        lines += [
+            "### Forbidden entity names for this BRD",
+            "These exact names appear in the BRD but must NOT become CDM entities:",
+        ]
+        for name in forbidden:
+            lines.append(f"- `{name}`")
+        lines.append("")
 
-    if metrics:
-        lines += ["", "### Key metrics (attributes of Fact entities — NOT standalone entities)"]
-        for m in metrics:
-            lines.append(f"- `{m}`")
+    if filter_to_dim:
+        lines += [
+            "### Filter/Prompt → Dimension mappings (Rule R6)",
+            "When these filter/prompt names appear, infer the listed dimension instead:",
+        ]
+        for m in filter_to_dim:
+            f_name = m.get("filter", "")
+            d_name = m.get("dimension", "")
+            if f_name and d_name:
+                lines.append(f"- `{f_name}` → `{d_name}`")
+        lines.append("")
 
-    if filters:
-        lines += ["", "### Filter/Prompt → Dimension mappings (Rule R6 — BRD specific)"]
-        for f in filters:
-            lines.append(
-                f"- `{f.get('filter_name','')}` → `{f.get('implied_dimension','')}`"
-            )
-
-    return "\n".join(lines)
+    updated = base + "\n".join(lines)
+    with open(SKILL_PATH, "w", encoding="utf-8") as f:
+        f.write(updated)
 
 
-# ── Main step function ────────────────────────────────────────────────────────
+# ── Minimal OWL/SHACL stubs (rule-based, no LLM) ─────────────────────────────
+
+def _write_owl_stub(domain_name: str) -> str:
+    """Write a minimal OWL ontology stub — no LLM needed."""
+    content = f"""@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix cdm:  <https://example.org/cdm/{domain_name}#> .
+
+cdm:{domain_name}Ontology a owl:Ontology ;
+    rdfs:label "{domain_name} CDM Ontology" .
+
+cdm:DimensionEntity a owl:Class ; rdfs:label "Dimension Entity" .
+cdm:FactEntity      a owl:Class ; rdfs:label "Fact Entity" .
+cdm:ReferenceEntity a owl:Class ; rdfs:label "Reference Entity" .
+cdm:BridgeEntity    a owl:Class ; rdfs:label "Bridge Entity" .
+"""
+    path = os.path.join(GENERATED_DIR, f"{domain_name}_ontology.ttl")
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(content)
+    return path
+
+
+def _write_shacl_stub(domain_name: str, forbidden_names: list) -> str:
+    """Write a minimal SHACL shapes stub with forbidden name constraints."""
+    forbidden_constraints = ""
+    for name in forbidden_names[:10]:
+        forbidden_constraints += f"""
+cdm:Forbidden_{name} a sh:NodeShape ;
+    sh:targetClass cdm:DimensionEntity, cdm:FactEntity ;
+    sh:not [ sh:property [ sh:path cdm:name ; sh:hasValue "{name}" ] ] ;
+    sh:message "'{name}' is a forbidden entity name for this BRD" .\n"""
+
+    content = f"""@prefix sh:  <http://www.w3.org/ns/shacl#> .
+@prefix cdm: <https://example.org/cdm/{domain_name}#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+cdm:EntityNameShape a sh:NodeShape ;
+    sh:targetClass cdm:DimensionEntity, cdm:FactEntity, cdm:ReferenceEntity ;
+    sh:property [
+        sh:path cdm:name ;
+        sh:minCount 1 ;
+        sh:pattern "^[A-Z][A-Za-z0-9]*$" ;
+        sh:message "Entity name must be PascalCase" ;
+    ] .
+{forbidden_constraints}"""
+    path = os.path.join(GENERATED_DIR, f"{domain_name}_shapes.ttl")
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(content)
+    return path
+
+
+# ── Main entry point ──────────────────────────────────────────────────────────
 
 def build_ontology_from_brd(
-    brd_text: str,
-    ollama_url: str,
-    model: str,
+    brd_text:    str,
+    ollama_url:  str,
+    model:       str,
     temperature: float = 0.1,
-    on_log=None,
+    on_log             = None,
 ) -> dict:
     """
-    Main entry point for Step 1b.
-    Returns a domain dict with extracted concepts and paths to generated files.
+    Fast ontology pre-pass.
+    One small LLM call → SKILL.md update → OWL/SHACL stubs.
+    Returns domain dict for pipeline metadata.
     """
     def log(msg):
         if on_log: on_log(msg)
 
-    log("Extracting domain vocabulary from BRD…")
+    # Single fast LLM call — first 3000 chars is enough to identify
+    # domain, dashboards/report names, and filter patterns
+    chunk = brd_text[:3000]
+    log("Scanning BRD for domain vocabulary and forbidden patterns…")
 
-    chunk = brd_text[:5000] if len(brd_text) > 5000 else brd_text
-
+    domain = {}
     try:
         raw = chat(
             base_url=ollama_url,
             model=model,
             messages=[
-                {"role": "system", "content": SYSTEM_DOMAIN},
-                {"role": "user",   "content": USER_DOMAIN.format(brd_text=chunk)},
+                {"role": "system", "content": SYSTEM},
+                {"role": "user",   "content": USER.format(brd_text=chunk)},
             ],
             temperature=temperature,
             format="json",
@@ -389,68 +207,40 @@ def build_ontology_from_brd(
         if not isinstance(domain, dict):
             domain = {}
     except Exception as e:
-        log(f"Domain extraction failed: {e} — using empty domain")
+        log(f"LLM scan failed: {e} — using empty domain")
         domain = {}
 
-    domain_name = domain.get("domain_name", "BusinessDomain")
-    log(f"Domain identified: {domain_name}")
+    domain_name   = domain.get("domain_name", "BusinessDomain")
+    forbidden     = domain.get("forbidden_names", [])
+    filter_to_dim = domain.get("filter_to_dimension", [])
 
-    # ── Generate OWL ontology ─────────────────────────────────────────────────
-    log("Generating OWL ontology (Turtle format)…")
-    owl_content = _generate_owl(domain)
-    owl_path    = os.path.join(GENERATED_DIR, f"{domain_name}_ontology.ttl")
-    with open(owl_path, "w", encoding="utf-8") as f:
-        f.write(owl_content)
-    log(f"OWL written → ontology/generated/{domain_name}_ontology.ttl")
+    log(f"Domain: {domain_name} · {len(forbidden)} forbidden patterns · "
+        f"{len(filter_to_dim)} filter→dimension mappings")
 
-    # ── Generate SHACL shapes ─────────────────────────────────────────────────
-    log("Generating SHACL shapes…")
-    shacl_content = _generate_shacl(domain)
-    shacl_path    = os.path.join(GENERATED_DIR, f"{domain_name}_shapes.ttl")
-    with open(shacl_path, "w", encoding="utf-8") as f:
-        f.write(shacl_content)
-    log(f"SHACL written → ontology/generated/{domain_name}_shapes.ttl")
-
-    # ── Save domain JSON ──────────────────────────────────────────────────────
-    domain_json_path = os.path.join(GENERATED_DIR, f"{domain_name}_domain.json")
-    with open(domain_json_path, "w", encoding="utf-8") as f:
-        json.dump(domain, f, indent=2)
-
-    # ── Update SKILL.md ───────────────────────────────────────────────────────
-    log("Updating SKILL.md with BRD-specific rules…")
+    # Update SKILL.md
+    log("Updating SKILL.md with BRD-specific guardrails…")
     try:
-        # Read base SKILL.md
-        base_skill = ""
-        if os.path.exists(BASE_SKILL_PATH):
-            with open(BASE_SKILL_PATH, "r", encoding="utf-8") as f:
-                base_skill = f.read()
-        elif os.path.exists(SKILL_PATH):
-            with open(SKILL_PATH, "r", encoding="utf-8") as f:
-                content = f.read()
-            # Remove any previously generated BRD-specific section
-            marker = "\n---\n\n## BRD-SPECIFIC RULES"
-            idx = content.find(marker)
-            base_skill = content[:idx] if idx != -1 else content
-            # Save base for next run
-            with open(BASE_SKILL_PATH, "w", encoding="utf-8") as f:
-                f.write(base_skill)
-
-        # Append BRD-specific section
-        brd_section  = _update_skill_md(domain)
-        updated_skill = base_skill + brd_section
-        with open(SKILL_PATH, "w", encoding="utf-8") as f:
-            f.write(updated_skill)
-        log("SKILL.md updated with BRD-specific guardrails")
+        _update_skill_md(domain)
+        log("SKILL.md updated")
     except Exception as e:
         log(f"SKILL.md update warning: {e}")
 
-    domain["_owl_path"]   = owl_path
-    domain["_shacl_path"] = shacl_path
-    domain["_domain_name"]= domain_name
+    # Write OWL/SHACL stubs
+    log("Writing OWL ontology and SHACL shapes stubs…")
+    owl_path   = _write_owl_stub(domain_name)
+    shacl_path = _write_shacl_stub(domain_name, forbidden)
+    log(f"OWL → {os.path.basename(owl_path)}")
+    log(f"SHACL → {os.path.basename(shacl_path)}")
 
-    dim_count  = len(domain.get("dimension_concepts", []))
-    fact_count = len(domain.get("fact_concepts", []))
-    ref_count  = len(domain.get("reference_concepts", []))
-    log(f"Ontology built: {dim_count} dimensions, {fact_count} facts, {ref_count} references")
+    # Save domain JSON
+    domain_json_path = os.path.join(GENERATED_DIR, f"{domain_name}_domain.json")
+    domain["_domain_name"] = domain_name
+    domain["_owl_path"]    = owl_path
+    domain["_shacl_path"]  = shacl_path
+    try:
+        with open(domain_json_path, "w", encoding="utf-8") as f:
+            json.dump(domain, f, indent=2)
+    except Exception:
+        pass
 
     return domain

@@ -25,6 +25,12 @@ REPORT_SUFFIXES = {
     "scorecard", "analytics", "portal", "insight", "snapshot"
 }
 
+# Filter/Prompt suffixes — these IMPLY dimensions (Rule R6), not forbidden
+FILTER_SUFFIXES_IMPLY_DIM = {
+    "filter", "prompt", "selector", "picker", "dropdown",
+    "checkbox", "toggle"
+}
+
 DIMENSION_KEYWORDS = {
     "consumer": "ConsumerDimension",
     "customer": "CustomerDimension",

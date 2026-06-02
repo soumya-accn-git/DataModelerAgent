@@ -10,7 +10,7 @@
 cdm:MerchandisingAnalysisOntology
     a owl:Ontology ;
     rdfs:label "MerchandisingAnalysis Conceptual Data Model Ontology" ;
-    rdfs:comment "Provides merchandising-specific business intelligence within Oracle Retail Insights." .
+    rdfs:comment "Provides business intelligence for merchandising within Oracle Retail Insights." .
 
 # ── Base classes ─────────────────────────────────────────────────────────────
 cdm:DimensionEntity a owl:Class ;
@@ -69,7 +69,7 @@ cdm:SaleFact_quantity a owl:DatatypeProperty ;
 cdm:MarkdownFact a owl:Class ;
     rdfs:subClassOf cdm:FactEntity ;
     rdfs:label "Markdown" ;
-    rdfs:comment "Represents markdown transactions." .
+    rdfs:comment "Represents a markdown transaction." .
 
 cdm:MarkdownFact_amount a owl:DatatypeProperty ;
     rdfs:domain cdm:MarkdownFact ;

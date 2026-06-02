@@ -29,9 +29,9 @@ def _infer_title(parsed_doc: dict) -> str:
 
 _CARDINALITY_MAP = {
     "1:1": ("||", "||"),
-    "1:N": ("||", "o{"),
+    "1:N": ("||", "}o"),
     "N:1": ("o{", "||"),
-    "M:N": ("}o", "o{"),
+    "M:N": ("o{", "}o"),
 }
 
 
@@ -74,7 +74,7 @@ def result_to_mermaid(result: dict) -> str:
             continue
         seen.add(key)
 
-        left, right = _CARDINALITY_MAP.get(card, ("||", "o{"))
+        left, right = _CARDINALITY_MAP.get(card, ("||", "}o"))
         connector   = "--" if r.get("required", False) else ".."
 
         lines.append(f'  {from_e} {left}{connector}{right} {to_e} : "{label}"')

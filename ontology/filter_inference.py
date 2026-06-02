@@ -216,8 +216,10 @@ def apply_filter_inference(
         name_lower = e.get("name", "").lower()
         etype      = e.get("type", "")
 
+        # Detect if this entity is a filter/prompt — either by type
+        # or by its name ending in a filter/prompt suffix
         is_filter = (
-            etype == "filter"
+            etype in ("filter", "prompt")
             or any(name_lower.endswith(s) for s in filter_indicators)
         )
 
