@@ -25,11 +25,23 @@ SKILL_PATH = os.path.join(
     os.path.dirname(os.path.dirname(__file__)), "skills", "SKILL.md"
 )
 
-FORBIDDEN_SUFFIXES = {
-    "report","dashboard","summary","analysis","view","overview",
-    "scorecard","monitor","tracker","insight","snapshot",
-    "top10","kpi","metric","rate","ratio","percentage",
-    "analytics","portal","feed","digest","listing","ranking"
+# Suffixes that almost always mark a report/visualization artifact rather than
+# a data entity — always rejected.
+HARD_FORBIDDEN_SUFFIXES = {
+    "report","dashboard","scorecard","analysis","overview","summary",
+    "monitor","tracker","snapshot","analytics","portal","feed","digest",
+    "listing","ranking","top10",
+}
+# Suffixes that usually denote a measure/attribute of a fact (not an entity) —
+# rejected UNLESS the entity is a reference (lookup) table, e.g. ExchangeRate.
+# Previously these were hard-rejected, silently dropping legitimate entities.
+SOFT_FORBIDDEN_SUFFIXES = {
+    "kpi","metric","rate","ratio","percentage","view","insight",
+}
+# Names that end in a forbidden suffix but are legitimate reference entities.
+ALLOWED_EXACT_EXCEPTIONS = {
+    "exchangerate","conversionrate","currencyrate","taxrate",
+    "interestrate","growthrate","fxrate",
 }
 FORBIDDEN_EXACT = {
     "top10","kpi","metric","report","dashboard",
@@ -101,32 +113,30 @@ FULL BRD TEXT:
 ---
 JSON:"""
 
-USER_FACTS_ONLY = """Read the BRD below and extract ONLY fact entities.
+USER_COMPLETENESS = """A first pass already extracted some entities from this BRD (listed under KNOWN).
+Re-read the ENTIRE BRD and return ANY entities that are MISSING — of EVERY type:
+dimensions, facts, reference (lookup) tables, and bridges. Do not repeat KNOWN ones.
 
-A fact entity = a measurable business event at a specific grain (time × location × product).
+Be exhaustive. Check every section, every table, every functional requirement.
+Pay special attention to:
+- Separate business processes that each imply their OWN fact (e.g. sales vs. markdowns
+  vs. forecasts are distinct facts — do not merge them)
+- Dimensions and reference tables introduced in later sections
+- Subject nouns behind any filter/prompt names (return the implied Dimension)
 
-COMMON RETAIL FACT ENTITIES — look for ALL of these:
-1. SalesFact / SalesAndProfitFact — daily sales, returns, profit, transaction counts
-2. MarkdownFact — markdown amounts (clearance, promo, permanent), markdown-to-sales ratios
-3. MarkupFact / MarkdownMarkupFact — markup amounts applied to items
-4. ProfitFact / GrossProfitFact — profit metrics, contribution percentages
-5. SalesForecastFact / ForecastFact — forecast quantities, variance vs actual
-6. SupplierCostFact — supplier cost tiers (base, net, net-net, dead net)
-7. CurrencyConversionFact — exchange rates for multi-currency support
+For each NEW entity return:
+- "name": PascalCase singular noun
+- "type": one of [dimension, fact, reference, bridge]
+- "description": one sentence — business meaning
+- "attributes": up to 6 key fields
+- "source": exact section heading or table name from the BRD
 
-Do NOT merge separate business processes into one fact. If the BRD describes
-markdowns AND sales separately, they are TWO separate fact entities.
-
-For each fact entity return:
-- "name": PascalCase ending in Fact (e.g. "SalesFact", "MarkdownFact", "ProfitFact")
-- "type": "fact"
-- "description": what measurable business event this captures
-- "attributes": key metrics mentioned in the BRD for this fact
-- "source": BRD section that implies this fact
+KNOWN (already found — do NOT repeat these):
+{known}
 
 Return: {{"entities": [...]}}
 
-BRD TEXT:
+FULL BRD TEXT:
 ---
 {brd_text}
 ---
@@ -202,9 +212,10 @@ def extract_entities(
     # ── Pass 1a — Full document scan ─────────────────────────────────────────
     log("Pass 1a — full document scan…")
 
-    # Split BRD into two halves for larger documents to avoid token limits
-    full_text = brd_text[:8000] if len(brd_text) > 8000 else brd_text
-    log(f"  Document: {len(brd_text):,} chars → sending {len(full_text):,} chars")
+    # Send the ENTIRE BRD. With num_ctx raised (see ollama_client), there is no
+    # need to slice — slicing was the main cause of missed later-section entities.
+    full_text = brd_text
+    log(f"  Document: {len(brd_text):,} chars → sending full text")
 
     pass1_entities = []
     try:
@@ -225,73 +236,43 @@ def extract_entities(
     except Exception as e:
         log(f"  Pass 1a failed: {e}")
 
-    # ── Pass 1b — Dedicated fact scan (safety net for missing facts) ───────────
-    # Run a focused fact-only extraction if fewer than 2 facts found —
-    # the general scan often truncates before reaching all fact sections
+    # ── Pass 1b — Completeness sweep (adds entities of ANY type) ───────────────
+    # The holistic Pass 1 can still stop early on long BRDs. If the yield looks
+    # low, run one more FULL-document pass and merge every new entity type — not
+    # just facts — so later-section dimensions and reference tables aren't lost.
     fact_count = sum(1 for e in pass1_entities if e.get("type") == "fact")
-    log(f"  Facts found so far: {fact_count}")
+    log(f"  Pass 1a totals: {len(pass1_entities)} entities ({fact_count} facts)")
 
-    if fact_count < 3:  # run dedicated scan if fewer than 3 facts — BRD typically has 4+
-        log("Pass 1b — dedicated fact extraction (fewer than 2 facts found)…")
-        # Use second half of BRD if available — facts often appear later
-        fact_text = brd_text[3000:9000] if len(brd_text) > 6000 else full_text
+    if len(pass1_entities) < 8 or fact_count < 2:
+        log("Pass 1b — completeness sweep (full document, all entity types)…")
+        known = ", ".join(e["name"] for e in pass1_entities) or "(none yet)"
         try:
             raw1b = chat(
                 base_url=ollama_url,
                 model=model,
                 messages=[
                     {"role": "system", "content": SYSTEM_PASS1.format(skill=skill_text)},
-                    {"role": "user",   "content": USER_FACTS_ONLY.format(brd_text=fact_text)},
+                    {"role": "user",   "content": USER_COMPLETENESS.format(
+                        brd_text=full_text, known=known)},
                 ],
                 temperature=temperature,
                 format="json",
             )
             data1b = extract_json(raw1b)
             items1b = data1b.get("entities", []) if isinstance(data1b, dict) else (data1b or [])
-            new_facts = _validate_and_clean(items1b)
+            new_ents = _validate_and_clean(items1b)
 
-            # Merge — add facts not already in pass1_entities
+            # Merge — add any new entity of ANY type not already present
             existing_names = {e["name"].lower() for e in pass1_entities}
             added = 0
-            for e in new_facts:
-                if e["name"].lower() not in existing_names and e.get("type") == "fact":
+            for e in new_ents:
+                if e["name"].lower() not in existing_names:
                     pass1_entities.append(e)
                     existing_names.add(e["name"].lower())
                     added += 1
-            log(f"  Pass 1b added {added} fact entities")
+            log(f"  Pass 1b added {added} entities (all types)")
         except Exception as e:
             log(f"  Pass 1b failed: {e}")
-
-    # ── Pass 1c — scan remaining BRD sections not yet covered ──────────────
-    # If BRD is large, the first 8000 chars may miss facts in later sections
-    fact_count_now = sum(1 for e in pass1_entities if e.get("type") == "fact")
-    if fact_count_now < 3 and len(brd_text) > 8000:
-        log("Pass 1c — scanning later BRD sections for additional facts…")
-        later_text = brd_text[6000:12000] if len(brd_text) > 12000 else brd_text[5000:]
-        try:
-            raw1c = chat(
-                base_url=ollama_url,
-                model=model,
-                messages=[
-                    {"role": "system", "content": SYSTEM_PASS1.format(skill=skill_text)},
-                    {"role": "user",   "content": USER_FACTS_ONLY.format(brd_text=later_text)},
-                ],
-                temperature=temperature,
-                format="json",
-            )
-            data1c = extract_json(raw1c)
-            items1c = data1c.get("entities", []) if isinstance(data1c, dict) else (data1c or [])
-            new_facts_c = _validate_and_clean(items1c)
-            existing_names = {e["name"].lower() for e in pass1_entities}
-            added_c = 0
-            for e in new_facts_c:
-                if e["name"].lower() not in existing_names and e.get("type") == "fact":
-                    pass1_entities.append(e)
-                    existing_names.add(e["name"].lower())
-                    added_c += 1
-            log(f"  Pass 1c added {added_c} additional fact entities")
-        except Exception as e:
-            log(f"  Pass 1c failed: {e}")
 
     if not pass1_entities:
         log("  ⚠️  Pass 1 returned no entities — check model and BRD content")
@@ -306,8 +287,9 @@ def extract_entities(
             for e in pass1_entities
         )
 
-        # Keep GraphRAG context focused — first 3000 chars
-        graph_ctx = graphrag_context[:3000]
+        # Pass the full GraphRAG context — it already covers the whole document
+        # (chunk-by-chunk) and is the richest full-coverage signal we have.
+        graph_ctx = graphrag_context
 
         try:
             raw2 = chat(
@@ -365,19 +347,10 @@ def _validate_and_clean(raw: list) -> list[dict]:
             print(f"[step2] Rejected (not PascalCase): {name}")
             continue
 
-        # Forbidden exact
-        if name.lower() in FORBIDDEN_EXACT:
-            print(f"[step2] Rejected (forbidden exact): {name}")
-            continue
-
-        # Forbidden suffix
         name_lower = name.lower()
-        if any(name_lower.endswith(s) for s in FORBIDDEN_SUFFIXES):
-            print(f"[step2] Rejected (forbidden suffix): {name}")
-            continue
 
-        # Normalise type
-        entity_type = e.get("type", "dimension").lower().strip()
+        # Normalise type FIRST — the forbidden filter below is type-aware.
+        entity_type = e.get("type", "").lower().strip()
         if entity_type not in VALID_TYPES:
             if any(kw in name_lower for kw in [
                 "fact","sale","transaction","payment","order","claim","usage","spend"
@@ -391,6 +364,22 @@ def _validate_and_clean(raw: list) -> list[dict]:
                 entity_type = "bridge"
             else:
                 entity_type = "dimension"
+
+        # Forbidden filtering — whitelisted names bypass it entirely.
+        if name_lower not in ALLOWED_EXACT_EXCEPTIONS:
+            if name_lower in FORBIDDEN_EXACT:
+                print(f"[step2] Rejected (forbidden exact): {name}")
+                continue
+            if any(name_lower.endswith(s) for s in HARD_FORBIDDEN_SUFFIXES):
+                print(f"[step2] Rejected (report/view artifact): {name}")
+                continue
+            # Soft suffixes (rate/ratio/metric/view…) are measures/attributes
+            # unless the entity is a reference (lookup) table — keep those.
+            if entity_type != "reference" and any(
+                name_lower.endswith(s) for s in SOFT_FORBIDDEN_SUFFIXES
+            ):
+                print(f"[step2] Rejected (metric/attribute, not an entity): {name}")
+                continue
 
         # Deduplicate — keep richer entry
         if name.lower() in seen:

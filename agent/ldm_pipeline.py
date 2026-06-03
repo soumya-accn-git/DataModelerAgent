@@ -11,6 +11,7 @@ Entry point: run_ldm_pipeline(cdm_result, brd_text, ...)
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from agent.ldm_seeder           import seed_oracle_reference, query_oracle_reference
+from agent.ri_metrics           import seed_ri_metrics
 from agent.step_ldm_promote     import promote_cdm_to_ldm
 from agent.ldm_validation_agent import run_with_repair
 
@@ -54,10 +55,15 @@ def run_ldm_pipeline(
             force=False,
             on_log=log,
         )
-        if n == 0:
-            done("Step A — Oracle reference seeder", "⚡ Already seeded — skipped")
-        else:
-            done("Step A — Oracle reference seeder", f"{n} chunks seeded")
+        # Also seed the Retail Insights metric-definitions catalog so fact-table
+        # expansion can ground its measure columns in the Oracle standard.
+        log("Checking Oracle Retail Insights metrics collection…")
+        m = seed_ri_metrics(chroma_path=chroma_path, force=False, on_log=log)
+
+        seeded_bits = []
+        seeded_bits.append("⚡ reference cached" if n == 0 else f"{n} reference chunks")
+        seeded_bits.append("⚡ metrics cached" if m == 0 else f"{m} metric areas")
+        done("Step A — Oracle reference seeder", " · ".join(seeded_bits))
     except Exception as e:
         log(f"Oracle seeder warning: {e} — continuing with empty reference")
         done("Step A — Oracle reference seeder", f"⚠️ {e}")

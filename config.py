@@ -52,5 +52,15 @@ AURA_INSTANCENAME = os.environ.get("AURA_INSTANCENAME",   "Instance01")
 # ── Ollama ────────────────────────────────────────────────────────────────────
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
 
+# Generation options. num_ctx is the input context window — Ollama's small
+# default silently truncates long BRDs + the SKILL.md prompt, which is the main
+# cause of missed entities/relationships. num_predict is the max output tokens.
+OLLAMA_NUM_CTX     = int(os.environ.get("OLLAMA_NUM_CTX",     "32768"))
+OLLAMA_NUM_PREDICT = int(os.environ.get("OLLAMA_NUM_PREDICT", "8192"))
+# Publish back to the environment so agent.ollama_client (which reads these
+# env vars at call time) picks up any file/.env override.
+os.environ.setdefault("OLLAMA_NUM_CTX",     str(OLLAMA_NUM_CTX))
+os.environ.setdefault("OLLAMA_NUM_PREDICT", str(OLLAMA_NUM_PREDICT))
+
 # ── ChromaDB ──────────────────────────────────────────────────────────────────
 CHROMA_PATH = os.environ.get("CHROMA_PATH", "./chroma_db")

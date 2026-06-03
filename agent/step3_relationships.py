@@ -96,7 +96,9 @@ def detect_relationships(
 
     # ── Pass 1 — Full document ────────────────────────────────────────────────
     log("Pass 1 — full document relationship detection…")
-    source_text = brd_text[:6000] if len(brd_text) > 6000 else brd_text
+    # Send the ENTIRE BRD — num_ctx is now large enough (see ollama_client), so
+    # relationships described in later sections are no longer cut off.
+    source_text = brd_text
 
     pass1_rels = []
     try:
@@ -154,18 +156,23 @@ def detect_relationships(
                 items2 = data2.get("relationships", []) if isinstance(data2, dict) else []
                 merged = _validate_rels(items2, entity_names)
 
-                # Count added
+                # Union: NEVER drop a Pass 1 relationship. Start from all of
+                # Pass 1 and add only genuinely new ones from the merge — the
+                # model occasionally omits inputs when asked to "merge".
                 existing_keys = {
                     (r["from_entity"], r["to_entity"], r["label"])
                     for r in pass1_rels
                 }
-                added = sum(
-                    1 for r in merged
-                    if (r["from_entity"], r["to_entity"], r["label"])
-                    not in existing_keys
-                )
+                union = list(pass1_rels)
+                added = 0
+                for r in merged:
+                    key = (r["from_entity"], r["to_entity"], r["label"])
+                    if key not in existing_keys:
+                        union.append(r)
+                        existing_keys.add(key)
+                        added += 1
                 log(f"  Pass 2 added {added} relationships from GraphRAG")
-                return merged
+                return union
             except Exception as e:
                 log(f"  Pass 2 failed (using Pass 1 only): {e}")
     else:

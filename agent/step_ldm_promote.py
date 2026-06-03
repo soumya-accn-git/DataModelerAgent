@@ -22,6 +22,7 @@ import sys, os, re, json
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from agent.ollama_client import chat, extract_json
 from agent.ldm_seeder import query_oracle_reference
+from agent.ri_metrics import query_ri_metrics
 
 # ── Prompts ───────────────────────────────────────────────────────────────────
 
@@ -91,6 +92,16 @@ For each column provide:
 - is_fk: true if foreign key to a dimension
 - metric_type: 'additive' / 'semi_additive' / 'non_additive' / 'fk' / 'degenerate'
 
+USING THE CANDIDATE METRIC COLUMNS:
+The user prompt includes "CANDIDATE METRIC COLUMNS" — the Oracle Retail Insights
+standard measures for the relevant fact area, each with an exact column name,
+data type and additivity. For every candidate measure that the BRD requires,
+include a column using that EXACT name, data_type and additivity, and place it in
+the matching additive_metrics / semi_additive_metrics / non_additive_metrics list.
+Do not invent a different name for a measure that already has a standard column.
+Only include measures supported by the BRD; you may add BRD-specific measures not
+in the candidate list when the BRD calls for them.
+
 Respond ONLY with valid JSON, no explanation, no markdown."""
 
 USER_DIM = """Expand these CDM dimension entities into full LDM dimension table definitions.
@@ -133,6 +144,10 @@ CDM ENTITIES (facts to expand):
 
 ORACLE RETAIL REFERENCE CONTEXT:
 {oracle_context}
+
+CANDIDATE METRIC COLUMNS (Oracle Retail Insights standard measures —
+use the exact column name / data_type / additivity for any the BRD requires):
+{metric_candidates}
 
 BRD CONTEXT:
 {brd_context}
@@ -194,6 +209,29 @@ def _build_oracle_context(
                 )
 
     return "\n\n---\n\n".join(context_parts) if context_parts else "No Oracle reference found"
+
+
+def _build_metric_candidates(fact_entities: list[dict], chroma_path: str) -> str:
+    """
+    Retrieve Oracle Retail Insights candidate metric columns relevant to the
+    fact entities from the 'oracle_retail_metrics' collection. Returns the
+    matched metric-area chunks (each lists exact column / type / additivity).
+    """
+    parts = []
+    seen = set()
+    for entity in fact_entities:
+        name = entity.get("name", "")
+        desc = entity.get("description", "")
+        attrs = ", ".join(entity.get("attributes", []))
+        query = f"{name} {desc} {attrs}".strip()
+
+        for r in query_ri_metrics(query=query, chroma_path=chroma_path, top_k=2):
+            hint = r["metadata"].get("fact_table_hint", "")
+            if hint and hint not in seen:
+                seen.add(hint)
+                parts.append(r["text"])
+
+    return "\n\n---\n\n".join(parts) if parts else "No standard metric catalog found (run the seeder)."
 
 
 # ── Naming conventions — loaded from skills/LDM_NAMING_CONVENTIONS.md ─────────
@@ -295,6 +333,8 @@ def promote_cdm_to_ldm(
     log("Call 2 — expanding fact entities via Oracle RAG…")
 
     fact_oracle_ctx = _build_oracle_context(fact_entities, chroma_path, "fact_metrics")
+    metric_candidates = _build_metric_candidates(fact_entities, chroma_path)
+    log(f"  RI metric candidates: {len(metric_candidates)} chars")
 
     fact_entity_summary = "\n".join(
         f"- {e['name']} ({e['type']}): {e['description']}"
@@ -319,6 +359,7 @@ def promote_cdm_to_ldm(
                 {"role": "user",   "content": USER_FACT.format(
                     entities=fact_entity_summary,
                     oracle_context=fact_oracle_ctx,
+                    metric_candidates=metric_candidates,
                     brd_context=brd_ctx,
                     dim_keys=dim_keys,
                 )},
