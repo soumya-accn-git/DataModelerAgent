@@ -4,14 +4,19 @@ Step B — CDM to LDM Promotion
 Takes the CDM entity list as input and promotes each entity to a full
 Logical Data Model table definition by:
 
-1. Querying ChromaDB 'oracle_retail_reference' for Oracle-standard
-   attribute definitions relevant to each entity
-2. Calling the LLM (Ollama) with the entity + BRD context + Oracle
-   reference to expand into a complete table definition
+1. Querying the Oracle Retail Data Model ChromaDB collections
+   (oracle_rdm_ldm / oracle_rdm_pdm, BRD-domain scoped) for the standard
+   logical entities and physical tables relevant to each CDM entity, with a
+   fallback to the Oracle Retail Insights reference (oracle_retail_reference)
+2. Retrieving the Oracle Retail Insights candidate metric columns
+   (oracle_retail_metrics) for fact entities
+3. Calling the LLM (Ollama) with the entity + BRD context + Oracle reference +
+   candidate metric columns to expand into a complete table definition
 
 Two LLM calls:
   Call 1 — Expand all dimension entities into LDM dimension tables
-  Call 2 — Expand all fact entities into LDM fact tables
+  Call 2 — Expand all fact entities into LDM fact tables (with per-fact
+           fallback + minimal stub so no fact entity is ever lost)
 
 Returns a structured LDM dict with full table definitions ready
 for Steps C (SCD assignment), D (grain declaration), E (normalisation),
@@ -21,8 +26,11 @@ and F (DDL generation).
 import sys, os, re, json
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from agent.ollama_client import chat, extract_json
-from agent.ldm_seeder import query_oracle_reference
-from agent.ri_metrics import query_ri_metrics
+from agent.ldm_seeder      import query_oracle_reference
+from agent.ri_metrics      import query_ri_metrics
+from agent.oracle_rdm_seeder import (
+    query_oracle_rdm, COLLECTION_LDM, COLLECTION_PDM,
+)
 
 # ── Prompts ───────────────────────────────────────────────────────────────────
 
@@ -32,6 +40,7 @@ You are designing a Logical Data Model (LDM) for a retail data warehouse.
 
 Your task is to expand CDM dimension entities into full LDM dimension
 table definitions, grounded in:
+- The Oracle Retail Data Model logical entities and logical->physical mappings
 - The Oracle Retail Insights industry standard attribute definitions
 - The BRD requirements for this specific subject area
 - Dimensional modelling best practices (Kimball methodology)
@@ -59,6 +68,12 @@ For each column provide:
 FORBIDDEN: Do not include report names, KPI names, or metric values
 as dimension attributes. Attributes describe the dimension member itself.
 
+ORACLE RETAIL DATA MODEL (ORDM) REFERENCE:
+The user prompt includes an "ORACLE RETAIL REFERENCE CONTEXT" block — Oracle Retail
+Data Model logical entities / physical tables for the relevant subject areas. Align
+table names, natural keys, hierarchy levels and attribute names with this reference
+where the BRD matches it, so the LDM conforms to the Oracle Retail Data Model standard.
+
 Respond ONLY with valid JSON, no explanation, no markdown."""
 
 SYSTEM_FACT = """You are an experienced subject matter expert in Data Modeling, specifically in Dimensional Modeling and able to precisely design data models Ontology and Graph RAG. Use your knowledge and experience in modeling the DWH schema for CDM and LDM.
@@ -67,6 +82,7 @@ You are designing a Logical Data Model (LDM) for a retail data warehouse.
 
 Your task is to expand CDM fact entities into full LDM fact table
 definitions, grounded in:
+- The Oracle Retail Data Model physical fact tables and logical->physical mappings
 - The Oracle Retail Insights industry standard metric definitions
 - The BRD requirements for this specific subject area
 - Dimensional modelling best practices (Kimball methodology)
@@ -101,6 +117,11 @@ the matching additive_metrics / semi_additive_metrics / non_additive_metrics lis
 Do not invent a different name for a measure that already has a standard column.
 Only include measures supported by the BRD; you may add BRD-specific measures not
 in the candidate list when the BRD calls for them.
+
+ORACLE RETAIL DATA MODEL (ORDM) REFERENCE:
+The "ORACLE RETAIL REFERENCE CONTEXT" block also includes Oracle Retail Data Model
+physical fact tables and mappings — align fact table names, grain columns and FK
+names with it where the BRD matches, so the physical model conforms to the standard.
 
 Respond ONLY with valid JSON, no explanation, no markdown."""
 
@@ -155,6 +176,9 @@ BRD CONTEXT:
 DIMENSION SURROGATE KEYS AVAILABLE:
 {dim_keys}
 
+CRITICAL: You MUST return ALL {n_facts} fact tables listed above.
+Do NOT return fewer tables than given. Each input entity gets exactly one output table.
+
 Return a JSON object:
 {{
   "fact_tables": [
@@ -178,6 +202,42 @@ Return a JSON object:
 }}
 JSON:"""
 
+USER_FACT_SINGLE = """Expand this single CDM fact entity into a full LDM fact table definition.
+
+FACT ENTITY:
+{entity}
+
+ORACLE RETAIL REFERENCE CONTEXT:
+{oracle_context}
+
+CANDIDATE METRIC COLUMNS (Oracle Retail Insights standard measures —
+use the exact column name / data_type / additivity for any the BRD requires):
+{metric_candidates}
+
+BRD CONTEXT:
+{brd_context}
+
+DIMENSION SURROGATE KEYS AVAILABLE:
+{dim_keys}
+
+Return a JSON object with a single fact table:
+{{
+  "fact_tables": [
+    {{
+      "table_name": "FACT_<NAME>",
+      "grain": "...",
+      "grain_columns": ["PRODUCT_KEY", "ORG_KEY", "DATE_KEY", ...],
+      "source_system": "...",
+      "fr_references": [...],
+      "additive_metrics": [...],
+      "semi_additive_metrics": [...],
+      "non_additive_metrics": [...],
+      "columns": [...]
+    }}
+  ]
+}}
+JSON:"""
+
 
 # ── Oracle RAG context builder ────────────────────────────────────────────────
 
@@ -186,27 +246,56 @@ def _build_oracle_context(
     chroma_path: str,
     entity_type: str,
 ) -> str:
-    """Query ChromaDB for Oracle reference context relevant to these entities."""
+    """
+    Query Oracle RDM ChromaDB collections for context.
+    Tries oracle_rdm_ldm (BRD-scoped, from Oracle RDM PDF) first,
+    then falls back to oracle_retail_reference (Insights guide).
+    """
     context_parts = []
     seen_ids = set()
 
     for entity in entities:
         name = entity.get("name", "")
         desc = entity.get("description", "")
-        query = f"{name} {desc} {entity_type} attributes"
+        # Strip common suffixes for better matching
+        search_name = name.replace("Dimension", "").replace("Fact", "").replace("Reference", "").strip()
+        query = f"{search_name} {desc} {entity_type}"
 
-        results = query_oracle_reference(
+        # 1. Try BRD-scoped Oracle RDM collection (highest quality).
+        #    Pull from the logical entities AND the physical tables so the model
+        #    sees both the logical->physical mapping for this subject area.
+        rdm_results = query_oracle_rdm(
             query=query,
+            collection=COLLECTION_LDM,
             chroma_path=chroma_path,
             top_k=2,
+            brd_domain_only=True,
         )
-        for r in results:
-            chunk_id = r["metadata"].get("table_hint", "")
-            if chunk_id not in seen_ids:
+        rdm_results += query_oracle_rdm(
+            query=query,
+            collection=COLLECTION_PDM,
+            chroma_path=chroma_path,
+            top_k=1,
+            brd_domain_only=True,
+        )
+        for r in rdm_results:
+            chunk_id = r["metadata"].get("name", "")
+            if chunk_id and chunk_id not in seen_ids:
                 seen_ids.add(chunk_id)
-                context_parts.append(
-                    f"[{r['metadata']['table_hint']}]\n{r['text'][:600]}"
-                )
+                context_parts.append(f"[Oracle RDM — {chunk_id}]\n{r['text'][:700]}")
+
+        # 2. Fall back to Insights guide reference
+        if not rdm_results:
+            ref_results = query_oracle_reference(
+                query=query,
+                chroma_path=chroma_path,
+                top_k=2,
+            )
+            for r in ref_results:
+                chunk_id = r["metadata"].get("table_hint", "")
+                if chunk_id not in seen_ids:
+                    seen_ids.add(chunk_id)
+                    context_parts.append(f"[Oracle Insights — {chunk_id}]\n{r['text'][:600]}")
 
     return "\n\n---\n\n".join(context_parts) if context_parts else "No Oracle reference found"
 
@@ -217,8 +306,7 @@ def _build_metric_candidates(fact_entities: list[dict], chroma_path: str) -> str
     fact entities from the 'oracle_retail_metrics' collection. Returns the
     matched metric-area chunks (each lists exact column / type / additivity).
     """
-    parts = []
-    seen = set()
+    parts, seen = [], set()
     for entity in fact_entities:
         name = entity.get("name", "")
         desc = entity.get("description", "")
@@ -246,7 +334,58 @@ from agent.ldm_conventions import (
     STANDARD_PK_NAMES,
     STANDARD_FK_NAMES,
     MANDATORY_FACT_FKS,
+    FACTS_WITHOUT_PRODUCT,
 )
+
+
+def _minimal_fact_stub(entity: dict, dim_keys: str) -> dict:
+    """
+    Build a minimal but valid fact table stub when LLM extraction fails.
+    Ensures the pipeline never loses a fact entity — worst case is a
+    stub table that the validation agent will flag for enrichment.
+    """
+    name = enforce_naming(entity.get("name", "UnknownFact"), "fact")
+    attrs = entity.get("attributes", [])
+
+    # Standard mandatory FK columns
+    columns = [
+        {"name": "PRODUCT_KEY",  "data_type": "NUMBER(18)",   "nullable": False, "is_fk": True,  "metric_type": "fk",       "description": "FK to DIM_PRODUCT"},
+        {"name": "ORG_KEY",      "data_type": "NUMBER(18)",   "nullable": False, "is_fk": True,  "metric_type": "fk",       "description": "FK to DIM_ORGANISATION"},
+        {"name": "DATE_KEY",     "data_type": "NUMBER(8)",    "nullable": False, "is_fk": True,  "metric_type": "fk",       "description": "FK to DIM_BUSINESS_CALENDAR"},
+        {"name": "ANALYSIS_MODE_CODE", "data_type": "VARCHAR2(15)", "nullable": False, "is_fk": False, "metric_type": "degenerate", "description": "AS_IS / AS_WAS / POINT_IN_TIME"},
+    ]
+
+    # Add metric columns from entity attributes
+    for attr in attrs[:8]:
+        col_name = re.sub(r"[^A-Za-z0-9_]", "", attr.upper().replace(" ", "_"))
+        columns.append({
+            "name":        col_name,
+            "data_type":   "NUMBER(18,4)",
+            "nullable":    True,
+            "is_fk":       False,
+            "metric_type": "additive",
+            "description": attr,
+        })
+
+    # Metadata
+    columns += [
+        {"name": "SOURCE_SYSTEM_CODE", "data_type": "VARCHAR2(10)", "nullable": True, "is_fk": False, "metric_type": "fk", "description": "Source system"},
+        {"name": "LOAD_DATE",          "data_type": "DATE",         "nullable": True, "is_fk": False, "metric_type": "fk", "description": "ETL load date"},
+    ]
+
+    return {
+        "table_name":          name,
+        "grain":               entity.get("description", "")[:80] or "item x location x period",
+        "grain_columns":       ["PRODUCT_KEY", "ORG_KEY", "DATE_KEY"],
+        "source_system":       "ReSA",
+        "fr_references":       [],
+        "additive_metrics":    [c["name"] for c in columns if c.get("metric_type") == "additive"],
+        "semi_additive_metrics": [],
+        "non_additive_metrics":  [],
+        "columns":             columns,
+        "_stub":               True,  # flag for validation agent
+    }
+
 
 # ── Main entry point ──────────────────────────────────────────────────────────
 
@@ -307,7 +446,6 @@ def promote_cdm_to_ldm(
     dimension_tables = []
     try:
         # Inject naming conventions into system prompt at call time
-        from agent.ldm_conventions import get_prompt_rules
         system_dim_with_rules = SYSTEM_DIM + "\n" + get_prompt_rules()
         raw_dim = chat(
             base_url=ollama_url,
@@ -349,8 +487,11 @@ def promote_cdm_to_ldm(
     ) if dimension_tables else "DIM_PRODUCT: PRODUCT_KEY\nDIM_ORGANISATION: ORG_KEY\nDIM_BUSINESS_CALENDAR: DATE_KEY\nDIM_RETAIL_PRICE_TYPE: PRICE_TYPE_KEY"
 
     fact_tables = []
+    n_facts = len(fact_entities)
+    system_fact_with_rules = SYSTEM_FACT + "\n" + get_prompt_rules()
+
+    # Pass 1 — expand all facts in one call
     try:
-        system_fact_with_rules = SYSTEM_FACT + "\n" + get_prompt_rules()
         raw_fact = chat(
             base_url=ollama_url,
             model=model,
@@ -362,6 +503,7 @@ def promote_cdm_to_ldm(
                     metric_candidates=metric_candidates,
                     brd_context=brd_ctx,
                     dim_keys=dim_keys,
+                    n_facts=n_facts,
                 )},
             ],
             temperature=temperature,
@@ -369,9 +511,64 @@ def promote_cdm_to_ldm(
         )
         data = extract_json(raw_fact)
         fact_tables = data.get("fact_tables", []) if isinstance(data, dict) else []
-        log(f"  Expanded {len(fact_tables)} fact tables")
+        log(f"  Pass 1: expanded {len(fact_tables)}/{n_facts} fact tables")
     except Exception as e:
-        log(f"  Fact expansion failed: {e}")
+        log(f"  Pass 1 failed: {e}")
+
+    # Pass 2 — per-table fallback for any missing facts
+    extracted_names = {
+        enforce_naming(t.get("table_name", ""), "fact").upper()
+        for t in fact_tables
+    }
+    missing_entities = [
+        e for e in fact_entities
+        if enforce_naming(e.get("name", ""), "fact").upper() not in extracted_names
+    ]
+
+    if missing_entities:
+        log(f"  Pass 2 — extracting {len(missing_entities)} missing facts individually…")
+        for entity in missing_entities:
+            ename = entity.get("name", "")
+            log(f"    Extracting: {ename}")
+            try:
+                entity_text = (
+                    f"Name: {ename}\n"
+                    f"Type: {entity.get('type','')}\n"
+                    f"Description: {entity.get('description','')}\n"
+                    f"Metrics/attributes: {', '.join(entity.get('attributes',[]))}"
+                )
+                # Get relevant Oracle context + metric candidates for this entity
+                single_ctx = _build_oracle_context([entity], chroma_path, "fact_metrics")
+                single_metrics = _build_metric_candidates([entity], chroma_path)
+                raw_single = chat(
+                    base_url=ollama_url,
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": system_fact_with_rules},
+                        {"role": "user",   "content": USER_FACT_SINGLE.format(
+                            entity=entity_text,
+                            oracle_context=single_ctx[:800],
+                            metric_candidates=single_metrics[:1500],
+                            brd_context=brd_ctx[:1500],
+                            dim_keys=dim_keys,
+                        )},
+                    ],
+                    temperature=temperature,
+                    format="json",
+                )
+                single_data = extract_json(raw_single)
+                single_tables = single_data.get("fact_tables", []) if isinstance(single_data, dict) else []
+                if single_tables:
+                    fact_tables.extend(single_tables)
+                    log(f"    ✅ Got {single_tables[0].get('table_name','?')}")
+                else:
+                    log(f"    ⚠️  No table returned for {ename} — building minimal stub")
+                    fact_tables.append(_minimal_fact_stub(entity, dim_keys))
+            except Exception as e:
+                log(f"    ⚠️  Failed for {ename}: {e} — building minimal stub")
+                fact_tables.append(_minimal_fact_stub(entity, dim_keys))
+
+    log(f"  Total fact tables: {len(fact_tables)}/{n_facts}")
 
     # ── Assemble bridge tables (rule-based, no LLM) ───────────────────────────
     bridge_tables = _build_bridge_tables(bridge_entities)

@@ -12,6 +12,7 @@ import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from agent.ldm_seeder           import seed_oracle_reference, query_oracle_reference
 from agent.ri_metrics           import seed_ri_metrics
+from agent.oracle_rdm_seeder    import seed_oracle_rdm
 from agent.step_ldm_promote     import promote_cdm_to_ldm
 from agent.ldm_validation_agent import run_with_repair
 
@@ -60,9 +61,28 @@ def run_ldm_pipeline(
         log("Checking Oracle Retail Insights metrics collection…")
         m = seed_ri_metrics(chroma_path=chroma_path, force=False, on_log=log)
 
+        # And the full Oracle Retail Data Model (927 logical entities + physical
+        # tables, BRD-domain scoped), used as RAG grounding for CDM/LDM/Physical
+        # design. Requires oracle_rdm_entities.json / oracle_rdm_tables.json in
+        # agent/data/ — if absent, log and continue (RAG falls back to the
+        # Oracle Retail Insights reference).
+        rdm_bit = "RDM skipped"
+        try:
+            log("Checking Oracle Retail Data Model collections…")
+            counts = seed_oracle_rdm(chroma_path=chroma_path, force=False, on_log=log)
+            ldm_n, pdm_n = counts.get("ldm", 0), counts.get("pdm", 0)
+            rdm_bit = ("⚡ RDM cached" if ldm_n == 0 and pdm_n == 0
+                       else f"{ldm_n} entities · {pdm_n} tables")
+        except FileNotFoundError:
+            log("Oracle RDM JSON data files not found — skipping RDM seed "
+                "(run the PDF extractor to enable). RAG falls back to Insights reference.")
+        except Exception as e:
+            log(f"Oracle RDM seed warning: {e} — continuing")
+
         seeded_bits = []
         seeded_bits.append("⚡ reference cached" if n == 0 else f"{n} reference chunks")
         seeded_bits.append("⚡ metrics cached" if m == 0 else f"{m} metric areas")
+        seeded_bits.append(rdm_bit)
         done("Step A — Oracle reference seeder", " · ".join(seeded_bits))
     except Exception as e:
         log(f"Oracle seeder warning: {e} — continuing with empty reference")

@@ -20,6 +20,11 @@ import sys, os, re
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from agent.ollama_client import chat, extract_json
 from agent.skill_loader import load_skill
+try:
+    from agent.oracle_rdm_seeder import query_oracle_rdm, COLLECTION_LDM as _RDM_LDM
+    _ORACLE_RDM_AVAILABLE = True
+except Exception:
+    _ORACLE_RDM_AVAILABLE = False
 
 SKILL_PATH = os.path.join(
     os.path.dirname(os.path.dirname(__file__)), "skills", "SKILL.md"

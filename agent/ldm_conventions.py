@@ -200,6 +200,17 @@ def enforce_mandatory_fks(ldm_result: dict, on_log=None) -> dict:
     return ldm_result
 
 
+def _strip_type_suffix(name: str, token: str) -> str:
+    """
+    Strip an embedded entity-type word from a name before prefixing, so e.g.
+    'SALESFACT'/'SALES_FACT' → 'SALES' and 'PRODUCTDIMENSION' → 'PRODUCT'.
+    Avoids the double-suffix bug (FACT_SALESFACT). Keeps the original name if
+    stripping would leave fewer than 2 characters.
+    """
+    stripped = re.sub(rf"_?{token}$", "", name)
+    return stripped if len(stripped) >= 2 else name
+
+
 def enforce_naming(table_name: str, entity_type: str) -> str:
     """
     Enforce naming convention on a table name.
@@ -215,6 +226,7 @@ def enforce_naming(table_name: str, entity_type: str) -> str:
             if name.startswith(fp):
                 name = name[len(fp):]
                 break
+        name = _strip_type_suffix(name, "DIMENSION")
         if name in DIM_ALIASES:
             return DIM_ALIASES[name]
         return f"DIM_{name}"
@@ -226,6 +238,7 @@ def enforce_naming(table_name: str, entity_type: str) -> str:
             if name.startswith(fp):
                 name = name[len(fp):]
                 break
+        name = _strip_type_suffix(name, "FACT")
         if name in FACT_ALIASES:
             return FACT_ALIASES[name]
         return f"FACT_{name}"
@@ -233,11 +246,13 @@ def enforce_naming(table_name: str, entity_type: str) -> str:
     elif entity_type == "bridge":
         if name.startswith("BRIDGE_"):
             return name
+        name = _strip_type_suffix(name, "BRIDGE")
         return f"BRIDGE_{name}"
 
     elif entity_type == "reference":
         if name.startswith("REF_"):
             return name
+        name = _strip_type_suffix(name, "REFERENCE")
         return f"REF_{name}"
 
     elif entity_type == "aggregate":

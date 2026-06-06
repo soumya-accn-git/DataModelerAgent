@@ -8,6 +8,7 @@ import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 import chromadb
 from chromadb.utils import embedding_functions
+from agent.oracle_rdm_seeder import query_oracle_rdm, COLLECTION_LDM
 
 
 COLLECTION_NAME = "ontology_concepts"
@@ -60,6 +61,25 @@ def enrich_with_ontology(
 
     Returns updated (entities, relationships) lists.
     """
+    # Ground each CDM entity in the Oracle Retail Data Model logical entities
+    # (RAG): surface the closest ORDM entity for traceability and to steer
+    # downstream LDM/physical design. Independent of the ontology_concepts
+    # collection below, and best-effort — never fatal (returns [] if oracle_rdm_ldm
+    # is not seeded).
+    for entity in entities:
+        try:
+            q = f"{entity.get('name','')}: {entity.get('description','')}"
+            ordm_hits = query_oracle_rdm(
+                q, collection=COLLECTION_LDM, chroma_path=chroma_path,
+                top_k=2, brd_domain_only=False,
+            )
+            entity["ordm_matches"] = [
+                f"{h['metadata'].get('name','')} ({round(1 - h['distance'], 3)})"
+                for h in ordm_hits if (1 - h["distance"]) > 0.3
+            ] or ["(no ORDM match)"]
+        except Exception:
+            entity["ordm_matches"] = []
+
     collection = _get_collection(chroma_path)
 
     if collection is None or collection.count() == 0:

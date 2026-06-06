@@ -1,0 +1,3075 @@
+[
+  {
+    "table_name": "DWR_ADDR_LOC",
+    "description": "ADDRESS LOCATION",
+    "table_type": "DWR",
+    "page": 120,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_ADDR_RLTD",
+    "description": "ADDRESS RELATED",
+    "table_type": "DWR",
+    "page": 120,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_ADVR_PERIOD",
+    "description": "ADVERTISING PERIOD",
+    "table_type": "DWR",
+    "page": 120,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_ADVR_WK",
+    "description": "ADVERTISING WEEK",
+    "table_type": "DWR",
+    "page": 120,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_ADVR_YR",
+    "description": "ADVERTISING YEAR",
+    "table_type": "DWR",
+    "page": 120,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_AGNT",
+    "description": "AGENT",
+    "table_type": "DWR",
+    "page": 120,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_ALTVE_ITEM",
+    "description": "ALTERNATIVE ITEM",
+    "table_type": "DWR",
+    "page": 120,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_APPT_CALNDR",
+    "description": "APPOINTMENT CALENDAR",
+    "table_type": "DWR",
+    "page": 120,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_BASE_DAY",
+    "description": "BASE DAY",
+    "table_type": "DWR",
+    "page": 120,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_BRND",
+    "description": "BRAND",
+    "table_type": "DWR",
+    "page": 120,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_BSNS_ENT_SLNG_RULE",
+    "description": "BUSINESS ENTITY SELLING RULE",
+    "table_type": "DWR",
+    "page": 120,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_BSNS_HLF_MO",
+    "description": "BUSINESS HALF MONTH",
+    "table_type": "DWR",
+    "page": 121,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_BSNS_QTR",
+    "description": "BUSINESS QUARTER",
+    "table_type": "DWR",
+    "page": 121,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_BSNS_UNIT_SHFT",
+    "description": "BUSINESS UNIT SHIFT",
+    "table_type": "DWR",
+    "page": 121,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_CALL_CNTR",
+    "description": "CALL CENTER",
+    "table_type": "DWR",
+    "page": 121,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_CARRIER",
+    "description": "CARRIER",
+    "table_type": "DWR",
+    "page": 121,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_CLNDR_HLF_YR",
+    "description": "CALENDAR HALF YEAR",
+    "table_type": "DWR",
+    "page": 121,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_CLNDR_WK",
+    "description": "CALENDAR WEEK",
+    "table_type": "DWR",
+    "page": 121,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_CLNT_HOST",
+    "description": "CLIENT HOST",
+    "table_type": "DWR",
+    "page": 121,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_CMPGN_CUST_ASGN",
+    "description": "CAMPAIGN CUSTOMER ASSIGNMENT",
+    "table_type": "DWR",
+    "page": 121,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_CMPGN_MEDIA_LAUNCH",
+    "description": "CAMPAIGN MEDIA LAUNCH",
+    "table_type": "DWR",
+    "page": 121,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_CMPGN_MSG_RNDRNG",
+    "description": "CAMPAIGN MESSAGE RENDERING",
+    "table_type": "DWR",
+    "page": 121,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_CMPTR_LOC_ASGN",
+    "description": "COMPETITOR LOCATION ASSIGNMENT",
+    "table_type": "DWR",
+    "page": 121,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_CNRT_STAT",
+    "description": "CONTRACT STATUS",
+    "table_type": "DWR",
+    "page": 121,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_CNRT_TERM_VAL",
+    "description": "CONTRACT TERM VALUE",
+    "table_type": "DWR",
+    "page": 122,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_CRTFCT_AGE_BND",
+    "description": "CERTIFICATE AGE BAND",
+    "table_type": "DWR",
+    "page": 122,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_CUST_ACCT",
+    "description": "CUSTOMER ACCOUNT",
+    "table_type": "DWR",
+    "page": 122,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_CUST_ADDR",
+    "description": "CUSTOMER ADDRESS",
+    "table_type": "DWR",
+    "page": 122,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_CUST_CLSTR",
+    "description": "CUSTOMER CLUSTER",
+    "table_type": "DWR",
+    "page": 122,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_CUST_CNRT",
+    "description": "CUSTOMER CONTRACT",
+    "table_type": "DWR",
+    "page": 122,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_CUST_OCCSN",
+    "description": "CUSTOMER OCCASION",
+    "table_type": "DWR",
+    "page": 122,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_CUST_RSTRCT_INFO",
+    "description": "CUSTOMER RESTRICTED INFO",
+    "table_type": "DWR",
+    "page": 122,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_CUST_SGMNT",
+    "description": "Mining table, see Table10\u20132 for more information.",
+    "table_type": "DWR",
+    "page": 122,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_CUST_SGMNT_DTL",
+    "description": "Mining table, see Table10\u20132 for more information.",
+    "table_type": "DWR",
+    "page": 122,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_DAY",
+    "description": "DAY",
+    "table_type": "DWR",
+    "page": 122,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_DAY_TRANS",
+    "description": "DAY TRANSFORMATION",
+    "table_type": "DWR",
+    "page": 122,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_DEMOG_GRP",
+    "description": "DEMOGRAPHY GROUP",
+    "table_type": "DWR",
+    "page": 122,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_DRVD_VAL",
+    "description": "DERIVED VALUE",
+    "table_type": "DWR",
+    "page": 122,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_EMP",
+    "description": "EMPLOYEE",
+    "table_type": "DWR",
+    "page": 122,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_EMP_ADDR",
+    "description": "EMPLOYEE ADDRESS",
+    "table_type": "DWR",
+    "page": 123,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_EMP_CLASS_ASGN",
+    "description": "EMPLOYEE CLASS ASSIGNMENT",
+    "table_type": "DWR",
+    "page": 123,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_EMP_CRTFCTN_ISSUING_BODY",
+    "description": "EMPLOYEE CERTIFICATION ISSUING BODY",
+    "table_type": "DWR",
+    "page": 123,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_EMP_DISC_GRP_ASGN",
+    "description": "EMPLOYEE DISCOUNT GROUP ASSIGNMENT",
+    "table_type": "DWR",
+    "page": 123,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_EQPMNT",
+    "description": "EQUIPMENT",
+    "table_type": "DWR",
+    "page": 123,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_EXT_DEPOS",
+    "description": "EXTERNAL DEPOSITORY",
+    "table_type": "DWR",
+    "page": 123,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_FRANCHISEE",
+    "description": "FRANCHISEE",
+    "table_type": "DWR",
+    "page": 123,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_FSCL_MO",
+    "description": "FISCAL MONTH",
+    "table_type": "DWR",
+    "page": 123,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_FSCL_YR",
+    "description": "FISCAL YEAR",
+    "table_type": "DWR",
+    "page": 123,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_GEO_CNTY",
+    "description": "GEOGRAPHY COUNTY",
+    "table_type": "DWR",
+    "page": 123,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_GEO_DEMOG_VAL",
+    "description": "GEOGRAPHY DEMOGRAPHY VALUE",
+    "table_type": "DWR",
+    "page": 123,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_GEO_HRCHY_LVL",
+    "description": "GEOGRAPHY HIERARCHY LEVEL",
+    "table_type": "DWR",
+    "page": 123,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_GEO_LVL",
+    "description": "GEOGRAPHY LEVEL",
+    "table_type": "DWR",
+    "page": 123,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_GEO_LVL_ATTR",
+    "description": "GEOGRAPHY LEVEL ATTRIBUTES",
+    "table_type": "DWR",
+    "page": 124,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_GEO_SB_RGN",
+    "description": "GEOGRAPHY SUB REGION",
+    "table_type": "DWR",
+    "page": 124,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_GFT_CRTFCT_CLASS",
+    "description": "GIFT CERTIFICATE CLASS",
+    "table_type": "DWR",
+    "page": 124,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_GL_JRNL_ENTRY_CTGRY",
+    "description": "GL JOURNAL ENTRY CATEGORY",
+    "table_type": "DWR",
+    "page": 124,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_GL_PRD",
+    "description": "GL PERIOD",
+    "table_type": "DWR",
+    "page": 124,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_HH",
+    "description": "HOUSEHOLD",
+    "table_type": "DWR",
+    "page": 124,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_HLF_MO_TRANS",
+    "description": "HALF MONTH TRANSFORMATION",
+    "table_type": "DWR",
+    "page": 124,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_HR",
+    "description": "HOUR",
+    "table_type": "DWR",
+    "page": 124,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_INGREDIENT_OPTION",
+    "description": "INGREDIENT OPTION",
+    "table_type": "DWR",
+    "page": 124,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_ITEM_CLASS",
+    "description": "ITEM CLASS",
+    "table_type": "DWR",
+    "page": 124,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_ITEM_CMPNY",
+    "description": "ITEM COMPANY",
+    "table_type": "DWR",
+    "page": 124,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_ITEM_GRP",
+    "description": "ITEM GROUP",
+    "table_type": "DWR",
+    "page": 124,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_ITEM_HRCHY_LVL_ASGN",
+    "description": "ITEM HIERARCHY LEVEL ASSIGNMENT",
+    "table_type": "DWR",
+    "page": 124,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_ITEM_HRCHY_VRSN",
+    "description": "ITEM HIERARCHY VERSION",
+    "table_type": "DWR",
+    "page": 125,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_ITEM_LVL_ATTR",
+    "description": "ITEM LEVEL ATTRIBUTE",
+    "table_type": "DWR",
+    "page": 125,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_ITEM_PRICE_DRVTN_RULE",
+    "description": "ITEM PRICE DERIVATION RULE",
+    "table_type": "DWR",
+    "page": 125,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_ITEM_SEASON",
+    "description": "ITEM SEASON",
+    "table_type": "DWR",
+    "page": 125,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_ITEM_TNDR_RSTRCT_GRP",
+    "description": "ITEM TENDER RESTRICTION GROUP",
+    "table_type": "DWR",
+    "page": 125,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_LCL_TAX_AUTH",
+    "description": "LOCAL TAX AUTHORITY",
+    "table_type": "DWR",
+    "page": 125,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_LYLTY_PROG",
+    "description": "LOYALTY PROGRAM",
+    "table_type": "DWR",
+    "page": 125,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_MEDIA_DPCT_ITEM_ASGN",
+    "description": "MEDIA DEPICTION ITEM ASSIGNMENT",
+    "table_type": "DWR",
+    "page": 125,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_MKT_AREA",
+    "description": "MARKET AREA",
+    "table_type": "DWR",
+    "page": 125,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_MKT_ITEM_DEPT_ASGN",
+    "description": "MARKET ITEM DEPARTMENT ASSIGNMENT",
+    "table_type": "DWR",
+    "page": 125,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_MNFCTR_CPN_FMLY",
+    "description": "MANUFACTURER COUPON FAMILY",
+    "table_type": "DWR",
+    "page": 125,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_MNFCTR_ITEM_DIV",
+    "description": "MANUFACTURER ITEM DIVISION",
+    "table_type": "DWR",
+    "page": 125,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_MNFCTR_ITEM_SBC",
+    "description": "MANUFACTURER ITEM SUBCLASS",
+    "table_type": "DWR",
+    "page": 125,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_MNFCTR_ORG_CMPTR_ASGN",
+    "description": "MANUFACTURER ORGANIZATION COMPETITOR ASSIGNMENT",
+    "table_type": "DWR",
+    "page": 126,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_MNFCTR_SKU_ITEM",
+    "description": "MANUFACTURER SKU ITEM",
+    "table_type": "DWR",
+    "page": 126,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_MNFCTR_SKU_ITEM_SLNG_PRICE",
+    "description": "MANUFACTURER SKU ITEM SELLING PRICE",
+    "table_type": "DWR",
+    "page": 126,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_MNFCTR_VRTY",
+    "description": "MANUFACTURER VARIETY",
+    "table_type": "DWR",
+    "page": 126,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_MO_TRANS",
+    "description": "MONTH TRANSFORMATION",
+    "table_type": "DWR",
+    "page": 126,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_ORG_AREA",
+    "description": "ORGANIZATION AREA",
+    "table_type": "DWR",
+    "page": 126,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_ORG_BSNS_UNIT",
+    "description": "ORGANIZATION BUSINESS UNIT",
+    "table_type": "DWR",
+    "page": 126,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_ORG_CHAIN",
+    "description": "ORGANIZATION CHAIN",
+    "table_type": "DWR",
+    "page": 126,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_ORG_DEPT",
+    "description": "ORGANIZATION DEPARTMENT",
+    "table_type": "DWR",
+    "page": 126,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_ORG_HRCHY",
+    "description": "ORGANIZATION HIERARCHY",
+    "table_type": "DWR",
+    "page": 126,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_ORG_LVL",
+    "description": "ORGANIZATION LEVEL",
+    "table_type": "DWR",
+    "page": 126,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_ORG_MKT_DATA",
+    "description": "ORGANIZATION MARKET DATA",
+    "table_type": "DWR",
+    "page": 126,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_OTHR_INDVL",
+    "description": "OTHER INDIVIDUAL",
+    "table_type": "DWR",
+    "page": 126,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_PERIOD_TODATE_TRANS",
+    "description": "PERIOD TODATE TRANSFORMATION",
+    "table_type": "DWR",
+    "page": 127,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_PG_CTGRY",
+    "description": "PAGE CATEGORY",
+    "table_type": "DWR",
+    "page": 127,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_PLNG_PERIOD",
+    "description": "PLANNING PERIOD",
+    "table_type": "DWR",
+    "page": 127,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_PLNG_SEASON_WK_ASGN",
+    "description": "PLANNING SEASON WEEK ASSIGNMENT",
+    "table_type": "DWR",
+    "page": 127,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_PLTFRM",
+    "description": "PLATFORM",
+    "table_type": "DWR",
+    "page": 127,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_POSN",
+    "description": "POSITION",
+    "table_type": "DWR",
+    "page": 127,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_POSTCD",
+    "description": "POST CODE",
+    "table_type": "DWR",
+    "page": 127,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_PRICE_DRVTN_RULE_ELGBL",
+    "description": "PRICE DERIVATION RULE ELIGIBILITY",
+    "table_type": "DWR",
+    "page": 127,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_PRMTN_PLN",
+    "description": "PROMOTION PLAN",
+    "table_type": "DWR",
+    "page": 127,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_PRMTN_SLNG_ITEM",
+    "description": "PROMOTION SELLING ITEM",
+    "table_type": "DWR",
+    "page": 127,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_PROJ",
+    "description": "PROJECT",
+    "table_type": "DWR",
+    "page": 127,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_PRTY",
+    "description": "PARTY",
+    "table_type": "DWR",
+    "page": 127,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_PRTY_DEMOG_ATTR",
+    "description": "PARTY DEMOGRAPHY ATTRIBUTE",
+    "table_type": "DWR",
+    "page": 127,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_PRTY_DEMOG_GRP",
+    "description": "PARTY DEMOGRAPHIC GROUP",
+    "table_type": "DWR",
+    "page": 128,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_QTR_TODATE_TRANS",
+    "description": "QUARTER TODATE TRANSFORMATION",
+    "table_type": "DWR",
+    "page": 128,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_RECIPE_INGREDIENT_ASGN",
+    "description": "RECIPE INGREDIENT ASSIGNMENT",
+    "table_type": "DWR",
+    "page": 128,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_REFERRING_SITE",
+    "description": "REFERRING SITE",
+    "table_type": "DWR",
+    "page": 128,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_RL_HRCHY",
+    "description": "ROLES HIERARCHY",
+    "table_type": "DWR",
+    "page": 128,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_RNTL_UNIT",
+    "description": "RENTAL UNIT",
+    "table_type": "DWR",
+    "page": 128,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_RTL_TRX_DLVRY_PREF_ITEM",
+    "description": "RETAIL TRANSACTION DELIVERY PREFERENCE ITEM",
+    "table_type": "DWR",
+    "page": 128,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_RTLR_BRND",
+    "description": "RETAILER BRAND",
+    "table_type": "DWR",
+    "page": 128,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_RTLR_CLSTR_RTLR_ASGN",
+    "description": "RETAILER CLUSTER RETAILER ASSIGNMENT",
+    "table_type": "DWR",
+    "page": 128,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_SB_RGN",
+    "description": "SUB REGION",
+    "table_type": "DWR",
+    "page": 128,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_SEARCH",
+    "description": "SEARCH",
+    "table_type": "DWR",
+    "page": 128,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_SEASON",
+    "description": "SEASON",
+    "table_type": "DWR",
+    "page": 128,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_SHFT_DFFRNTL",
+    "description": "SHIFT DIFFERENTIAL",
+    "table_type": "DWR",
+    "page": 128,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_SITE",
+    "description": "SITE",
+    "table_type": "DWR",
+    "page": 129,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_SKU_ITEM_CHOICE",
+    "description": "SKU ITEM CHOICE",
+    "table_type": "DWR",
+    "page": 129,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_SKU_ITEM_RECIPE_ASGN",
+    "description": "SKU ITEM RECIPE ASSIGNMENT",
+    "table_type": "DWR",
+    "page": 129,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_SKU_ITEM_VRTY_ASGN",
+    "description": "SKU ITEM VARIETY ASSIGNMENT",
+    "table_type": "DWR",
+    "page": 129,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_SLS_RSTRCT",
+    "description": "SALES RESTRICTION",
+    "table_type": "DWR",
+    "page": 129,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_SOC_JB_GRP",
+    "description": "SOC JOB GROUP",
+    "table_type": "DWR",
+    "page": 129,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_SRLZD_UNIT",
+    "description": "SERIALIZED UNIT",
+    "table_type": "DWR",
+    "page": 129,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_STCK_ITEM_CONSMR_PROD_LBL",
+    "description": "STOCK ITEM CONSUMER PRODUCT LABEL",
+    "table_type": "DWR",
+    "page": 129,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_SURVEY",
+    "description": "SURVEY",
+    "table_type": "DWR",
+    "page": 129,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_TARE",
+    "description": "TARE",
+    "table_type": "DWR",
+    "page": 129,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_TASK_SET",
+    "description": "TASK SET",
+    "table_type": "DWR",
+    "page": 129,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_TAX_GRP_RULE",
+    "description": "TAX GROUP RULE",
+    "table_type": "DWR",
+    "page": 129,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_TCHPNT",
+    "description": "TOUCHPOINT",
+    "table_type": "DWR",
+    "page": 129,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_TERM_CD",
+    "description": "TERM CODE",
+    "table_type": "DWR",
+    "page": 130,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_TILL_WRKSTN_ASGN",
+    "description": "TILL WORKSTATION ASSIGNMENT",
+    "table_type": "DWR",
+    "page": 130,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_TIME_STNDRD_BY_WK",
+    "description": "TIME STANDARD BY WEEK",
+    "table_type": "DWR",
+    "page": 130,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_TNDR_ACCT_APRVL_REF",
+    "description": "TENDER ACCOUNT APPROVAL REFERENCE",
+    "table_type": "DWR",
+    "page": 130,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_TNDR_RPSTRY",
+    "description": "TENDER REPOSITORY",
+    "table_type": "DWR",
+    "page": 130,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_TRD_AREA",
+    "description": "TRADE AREA",
+    "table_type": "DWR",
+    "page": 130,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_USER",
+    "description": "USER",
+    "table_type": "DWR",
+    "page": 130,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_VISITOR",
+    "description": "VISITOR",
+    "table_type": "DWR",
+    "page": 130,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_VNDR_CARRIER_ASGN",
+    "description": "VENDOR CARRIER ASSIGNMENT",
+    "table_type": "DWR",
+    "page": 130,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_VNDR_ITEM",
+    "description": "VENDOR ITEM",
+    "table_type": "DWR",
+    "page": 130,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_VNDR_MNFCTR_BRND",
+    "description": "VENDOR MANUFACTURER BRAND",
+    "table_type": "DWR",
+    "page": 130,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_VNDR_SITE_CARRIER_ASGN",
+    "description": "VENDOR SITE CARRIER ASSIGNMENT",
+    "table_type": "DWR",
+    "page": 130,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWR_WBSITE_RESRE",
+    "description": "WEBSITE RESOURCE",
+    "table_type": "DWR",
+    "page": 130,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_WBSITE_USER",
+    "description": "WEBSITE USER",
+    "table_type": "DWR",
+    "page": 131,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_WK_TRANS",
+    "description": "WEEK TRANSFORMATION",
+    "table_type": "DWR",
+    "page": 131,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWR_WRKSTN_GRP",
+    "description": "WORKSTATION GROUP",
+    "table_type": "DWR",
+    "page": 131,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_ACCT_TYP",
+    "description": "ACCOUNT TYPE",
+    "table_type": "DWL",
+    "page": 131,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_ADDR_TYP",
+    "description": "ADDRESS TYPE",
+    "table_type": "DWL",
+    "page": 131,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_AGE_GRP",
+    "description": "AGE GROUP",
+    "table_type": "DWL",
+    "page": 131,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_ASSTS_TYP",
+    "description": "ASSETS TYPE",
+    "table_type": "DWL",
+    "page": 131,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_BSNS_UNIT_TYP",
+    "description": "BUSINESS UNIT TYPE",
+    "table_type": "DWL",
+    "page": 131,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_CALL_CNTR_CASE_SB_TYP",
+    "description": "CALL CENTER CASE SUB TYPE",
+    "table_type": "DWL",
+    "page": 131,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_CARD_TYP",
+    "description": "CARD TYPE",
+    "table_type": "DWL",
+    "page": 131,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_CLNDR_TYP",
+    "description": "CALENDAR TYPE",
+    "table_type": "DWL",
+    "page": 131,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_CNRT_STAT_RSN",
+    "description": "CONTRACT STATUS REASON",
+    "table_type": "DWL",
+    "page": 132,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_CNRT_TYP",
+    "description": "CONTRACT TYPE",
+    "table_type": "DWL",
+    "page": 132,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_COLOR",
+    "description": "COLOR",
+    "table_type": "DWL",
+    "page": 132,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_COMUNICTN_TYP",
+    "description": "COMMUNICATION TYPE",
+    "table_type": "DWL",
+    "page": 132,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_COST_SUBTYP",
+    "description": "COST SUBTYPE",
+    "table_type": "DWL",
+    "page": 132,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_CPN_TYP",
+    "description": "COUPON TYPE",
+    "table_type": "DWL",
+    "page": 132,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_CUST_OCCSN_TYP",
+    "description": "CUSTOMER OCCASION TYPE",
+    "table_type": "DWL",
+    "page": 132,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_CUST_TYP",
+    "description": "CUSTOMER TYPE",
+    "table_type": "DWL",
+    "page": 132,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_DISC_TYP",
+    "description": "DISCOUNT TYPE",
+    "table_type": "DWL",
+    "page": 132,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_DPST_RDMPTN_TYP",
+    "description": "DEPOSIT REDEMPTION TYPE",
+    "table_type": "DWL",
+    "page": 132,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_DYE",
+    "description": "DYE",
+    "table_type": "DWL",
+    "page": 132,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_EMP_TIME_ACCRUAL_TYP",
+    "description": "EMPLOYEE TIME ACCRUAL TYPE",
+    "table_type": "DWL",
+    "page": 132,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_ENV_TYP",
+    "description": "ENVIRONMENT TYPE",
+    "table_type": "DWL",
+    "page": 132,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_EQPMNT_TYP",
+    "description": "EQUIPMENT TYPE",
+    "table_type": "DWL",
+    "page": 133,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_FIBER",
+    "description": "FIBER",
+    "table_type": "DWL",
+    "page": 133,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_GFT_CRTFCT_TYP",
+    "description": "GIFT CERTIFICATE TYPE",
+    "table_type": "DWL",
+    "page": 133,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_GL_SGMNT_TYP",
+    "description": "GL SEGMENT TYPE",
+    "table_type": "DWL",
+    "page": 133,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_HZRDS_MTRL_TYP",
+    "description": "HAZARDOUS MATERIAL TYPE",
+    "table_type": "DWL",
+    "page": 133,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_IMPRESSION_EVT_TYP",
+    "description": "IMPRESSION EVENT TYPE",
+    "table_type": "DWL",
+    "page": 133,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_INTRACN_DRCTN",
+    "description": "INTERACTION DIRECTION",
+    "table_type": "DWL",
+    "page": 133,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_INTRACN_STAT",
+    "description": "INTERACTION STATUS",
+    "table_type": "DWL",
+    "page": 133,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_INV_ACCT_MTHD",
+    "description": "INVENTORY ACCOUNTING METHOD",
+    "table_type": "DWL",
+    "page": 133,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_INV_DOC_TYP",
+    "description": "INVENTORY DOCUMENT TYPE",
+    "table_type": "DWL",
+    "page": 133,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_INV_STATE",
+    "description": "INVENTORY STATE",
+    "table_type": "DWL",
+    "page": 133,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_ITEM_CLSTR_TYP",
+    "description": "ITEM CLUSTER TYPE",
+    "table_type": "DWL",
+    "page": 133,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_JB_RL",
+    "description": "JOB ROLES",
+    "table_type": "DWL",
+    "page": 133,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_KNWN_SRC_TYP",
+    "description": "KNOWN SOURCE TYPE",
+    "table_type": "DWL",
+    "page": 134,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_LCL_AUTH_TYP",
+    "description": "LOCAL AUTHORITY TYPE",
+    "table_type": "DWL",
+    "page": 134,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_LOC_TYP",
+    "description": "LOCATION TYPE",
+    "table_type": "DWL",
+    "page": 134,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_MEDIA_TYP",
+    "description": "MEDIA TYPE",
+    "table_type": "DWL",
+    "page": 134,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_MNFCTR_TYP",
+    "description": "MANUFACTURER TYPE",
+    "table_type": "DWL",
+    "page": 134,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_ORDR_CTGRY_TYP",
+    "description": "ORDER CATEGORY TYPE",
+    "table_type": "DWL",
+    "page": 134,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_ORDR_SRC",
+    "description": "ORDER SOURCE TYPE",
+    "table_type": "DWL",
+    "page": 134,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_ORDR_STATE",
+    "description": "ORDER STATE",
+    "table_type": "DWL",
+    "page": 134,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_ORG_TYP",
+    "description": "ORGANIZATION TYPE",
+    "table_type": "DWL",
+    "page": 134,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_PLAN_TYP",
+    "description": "PLAN TYPE",
+    "table_type": "DWL",
+    "page": 134,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_POSTL_SRVC_TYP",
+    "description": "POSTAL SERVICE TYPE",
+    "table_type": "DWL",
+    "page": 134,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_PRICE_LST",
+    "description": "PRICE LIST",
+    "table_type": "DWL",
+    "page": 134,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_PRMTN_TYP",
+    "description": "PROMOTION TYPE",
+    "table_type": "DWL",
+    "page": 134,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_PRODTN_ITEM_CONVBL_TYP",
+    "description": "PRODUCTION ITEM CONVEYABLE TYPE",
+    "table_type": "DWL",
+    "page": 135,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_PRTY_ASGN_TYP",
+    "description": "PARTY ASSIGNMENT TYPE",
+    "table_type": "DWL",
+    "page": 135,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_PRTY_STAT_CD",
+    "description": "PARTY STATUS CODE",
+    "table_type": "DWL",
+    "page": 135,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_PRTY_TYP",
+    "description": "PARTY TYPE",
+    "table_type": "DWL",
+    "page": 135,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_RFMP_MTHD",
+    "description": "RFMP METHOD",
+    "table_type": "DWL",
+    "page": 135,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_RSN",
+    "description": "REASON",
+    "table_type": "DWL",
+    "page": 135,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_RTL_TRX_LI_GRP_TYP",
+    "description": "RETAIL TRANSACTION LINE ITEM GROUP TYPE",
+    "table_type": "DWL",
+    "page": 135,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_SCRTY_CLASS",
+    "description": "SECURITY CLASS",
+    "table_type": "DWL",
+    "page": 135,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_SERVER_STAT",
+    "description": "SERVER STATUS",
+    "table_type": "DWL",
+    "page": 135,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_SHPMNT_MTHD",
+    "description": "SHIPMENT METHOD",
+    "table_type": "DWL",
+    "page": 135,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_SKU_ITEM_TYP",
+    "description": "SKU ITEM TYPE",
+    "table_type": "DWL",
+    "page": 135,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_SL_WT_OR_UNIT_CNT",
+    "description": "SALE WEIGHT OR UNIT COUNT",
+    "table_type": "DWL",
+    "page": 135,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_SRVC_TYP",
+    "description": "SERVICE TYPE",
+    "table_type": "DWL",
+    "page": 135,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_STAT",
+    "description": "STATUS",
+    "table_type": "DWL",
+    "page": 136,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_STCK_ITEM_TYP",
+    "description": "STOCK ITEM TYPE",
+    "table_type": "DWL",
+    "page": 136,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_TAX_LVL_TYP",
+    "description": "TAX LEVEL TYPE",
+    "table_type": "DWL",
+    "page": 136,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_TAX_THRSHLD_TYP",
+    "description": "TAX THRESHOLD TYPE",
+    "table_type": "DWL",
+    "page": 136,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_TILL_MOVEMENT_DRCTN",
+    "description": "TILL MOVEMENT DIRECTION",
+    "table_type": "DWL",
+    "page": 136,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_TRNSFR_TYP",
+    "description": "TRANSFER TYPE",
+    "table_type": "DWL",
+    "page": 136,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_TRX_TYP",
+    "description": "TRANSACTION TYPE",
+    "table_type": "DWL",
+    "page": 136,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_VAL_TYP",
+    "description": "VALUE TYPE",
+    "table_type": "DWL",
+    "page": 136,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_VNDR_ITEM_CPU_TYP",
+    "description": "VENDOR ITEM COST PER UNIT TYPE",
+    "table_type": "DWL",
+    "page": 136,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_WBSITE_RESRE_TYP",
+    "description": "WEBSITE RESOURCE TYPE",
+    "table_type": "DWL",
+    "page": 136,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWL_WRK_HR_TYP",
+    "description": "WORK HOUR TYPE",
+    "table_type": "DWL",
+    "page": 136,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_BUMP_BR_EQPMNT_STSTCS_RDNG",
+    "description": "BUMP BAR EQUIPMENT STATISTICS READING",
+    "table_type": "DWB",
+    "page": 137,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_COST",
+    "description": "COST",
+    "table_type": "DWB",
+    "page": 137,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_CRTFCT_LI",
+    "description": "CERTIFICATE LINE ITEM",
+    "table_type": "DWB",
+    "page": 137,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_CUST_INVC",
+    "description": "CUSTOMER INVOICE",
+    "table_type": "DWB",
+    "page": 137,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_CUST_ORDR_CNTRL_TRX",
+    "description": "CUSTOMER ORDER CONTROL TRANSACTION",
+    "table_type": "DWB",
+    "page": 137,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_CUST_ORDR_LI_STATE",
+    "description": "CUSTOMER ORDER LINE ITEM STATE",
+    "table_type": "DWB",
+    "page": 137,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_CUST_ORDR_TAX_OVRRD_MDFR",
+    "description": "CUSTOMER ORDER TAX OVERRIDE MODIFIER",
+    "table_type": "DWB",
+    "page": 137,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_CUST_STAT",
+    "description": "CUSTOMER STATUS",
+    "table_type": "DWB",
+    "page": 137,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_DISC_LI",
+    "description": "DISCOUNT LINE ITEM",
+    "table_type": "DWB",
+    "page": 137,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_EMP_ACT_LBR_HRLY",
+    "description": "EMPLOYEE ACTUAL LABOR HOURLY",
+    "table_type": "DWB",
+    "page": 137,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_EMP_JB_RL_ASGN",
+    "description": "EMPLOYEE JOB ROLE ASSIGNMENT",
+    "table_type": "DWB",
+    "page": 137,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_EMP_SERVER_ASGN",
+    "description": "EMPLOYEE SERVER ASSIGNMENT",
+    "table_type": "DWB",
+    "page": 137,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_EMP_TRNG_REC",
+    "description": "EMPLOYEE TRAINING RECORD",
+    "table_type": "DWB",
+    "page": 138,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_EXCHNG_RATE_CRNCY_DAY",
+    "description": "EXCHANGE RATE CURRENCY DAY",
+    "table_type": "DWB",
+    "page": 138,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_FLEET_MGMT",
+    "description": "FLEET MANAGEMENT",
+    "table_type": "DWB",
+    "page": 138,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_FORECOURT_TRX",
+    "description": "FORECOURT TRANSACTION",
+    "table_type": "DWB",
+    "page": 138,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_FUELING_TRX",
+    "description": "FUELING TRANSACTION",
+    "table_type": "DWB",
+    "page": 138,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_GL_JRNL_ENTRY",
+    "description": "GL JOURNAL ENTRY",
+    "table_type": "DWB",
+    "page": 138,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_GL_SBLDGR_JRNL_ENTRY",
+    "description": "GL SUBLEDGER JOURNAL ENTRY",
+    "table_type": "DWB",
+    "page": 138,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_ICD_MRCHNDS_LI_MDFR",
+    "description": "ICD MERCHANDISE LINE ITEM MODIFIER",
+    "table_type": "DWB",
+    "page": 138,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_IMPRESSION",
+    "description": "IMPRESSION",
+    "table_type": "DWB",
+    "page": 138,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_INV_CNTRL_DOC",
+    "description": "INVENTORY CONTROL DOCUMENT",
+    "table_type": "DWB",
+    "page": 138,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_INV_ITEM_STATE",
+    "description": "INVENTORY ITEM STATE",
+    "table_type": "DWB",
+    "page": 138,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_JB_ALCTN",
+    "description": "JOB ALLOCATION",
+    "table_type": "DWB",
+    "page": 138,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_LYLTY_RWRD_LI",
+    "description": "LOYALTY REWARD LINE ITEM",
+    "table_type": "DWB",
+    "page": 138,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_MICR_EQPMNT_STTSTCS_RDNG",
+    "description": "MICR EQUIPMENT STATISTICS READING",
+    "table_type": "DWB",
+    "page": 139,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_MKT_SLS_ITEM_LVL_WK",
+    "description": "MARKET SALES ITEM WEEK",
+    "table_type": "DWB",
+    "page": 139,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_MTN_SNSR_EQPMT_STSTCS_RDNG",
+    "description": "MOTION SENSOR EQUIPMENT STATISTICS READING",
+    "table_type": "DWB",
+    "page": 139,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_ORDR_LI",
+    "description": "ORDER LINE ITEM",
+    "table_type": "DWB",
+    "page": 139,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_PAY_DTL",
+    "description": "PAY DETAIL",
+    "table_type": "DWB",
+    "page": 139,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_PCHSE_ORDR",
+    "description": "PURCHASE ORDER",
+    "table_type": "DWB",
+    "page": 139,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_PCHSE_ORDR_STATE",
+    "description": "PURCHASE ORDER STATE",
+    "table_type": "DWB",
+    "page": 139,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_PINPAD_EQPMNT_STTSTCS_RDNG",
+    "description": "PINPAD EQUIPMENT STATISTICS READING",
+    "table_type": "DWB",
+    "page": 139,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_PRICE_LN",
+    "description": "PRICE LINE",
+    "table_type": "DWB",
+    "page": 139,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_PRMTN_MEDIA_COST",
+    "description": "PROMOTION MEDIA COST",
+    "table_type": "DWB",
+    "page": 139,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_PRTY_INTRACN_LTTR_EVT",
+    "description": "PARTY INTERACTION LETTER EVENT",
+    "table_type": "DWB",
+    "page": 139,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_PRTY_INTRCN_THRD_STAT_HIST",
+    "description": "PARTY INTERACTION THREAD STATUS HISTORY",
+    "table_type": "DWB",
+    "page": 139,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_PYMT_ON_ACCT_LI",
+    "description": "PAYMENT ON ACCOUNT LINE ITEM",
+    "table_type": "DWB",
+    "page": 139,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_RESERVATION",
+    "description": "RESERVATION",
+    "table_type": "DWB",
+    "page": 140,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_RTL_SL_RTRN_LI",
+    "description": "RETAIL SALE RETURN LINE ITEM",
+    "table_type": "DWB",
+    "page": 140,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_RTL_TRX",
+    "description": "RETAIL TRANSACTION",
+    "table_type": "DWB",
+    "page": 140,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_RTL_TRX_LI",
+    "description": "RETAIL TRANSACTION LINE ITEM",
+    "table_type": "DWB",
+    "page": 140,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_RTL_TRX_MISC_LI",
+    "description": "RETAIL TRANSACTION MISC LINE ITEM",
+    "table_type": "DWB",
+    "page": 140,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_RTL_VALTN_LDGR_ACCT_HIST",
+    "description": "RETAIL VALUATION LEDGER ACCOUNT HISTORY",
+    "table_type": "DWB",
+    "page": 140,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_SCHL_EVT",
+    "description": "SCHEDULE EVENT",
+    "table_type": "DWB",
+    "page": 140,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_SERVER_STAT_HIST",
+    "description": "SERVER STATUS HISTORY",
+    "table_type": "DWB",
+    "page": 140,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_SKU_ITEM_BU_SLNG_PRC",
+    "description": "SKU ITEM BUSINESS UNIT SELLING PRICE",
+    "table_type": "DWB",
+    "page": 140,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_SL_METER_RDNG",
+    "description": "SALES METER READING",
+    "table_type": "DWB",
+    "page": 140,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_SRLZD_UNIT_MDFR",
+    "description": "SERIALIZED UNIT MODIFIER",
+    "table_type": "DWB",
+    "page": 140,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_STCK_METER_RDNG",
+    "description": "STOCK METER READING",
+    "table_type": "DWB",
+    "page": 140,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_TANK_RDNG",
+    "description": "TANK READING",
+    "table_type": "DWB",
+    "page": 140,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_TANK_TEMP_RDNG",
+    "description": "TANK TEMPERATURE READING",
+    "table_type": "DWB",
+    "page": 141,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_TILL_HIST",
+    "description": "TILL HISTORY",
+    "table_type": "DWB",
+    "page": 141,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_TIME_PUNCH_APRVL",
+    "description": "TIME PUNCH APPROVAL",
+    "table_type": "DWB",
+    "page": 141,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_TNDR_ATHRZTN_REVERSAL",
+    "description": "TENDER AUTHORIZATION REVERSAL",
+    "table_type": "DWB",
+    "page": 141,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_TNDR_LI_DENMTN",
+    "description": "TENDER LINE ITEM DENOMINATION",
+    "table_type": "DWB",
+    "page": 141,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_TRX_ASGN",
+    "description": "TRANSACTION ASSIGNMENT",
+    "table_type": "DWB",
+    "page": 141,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_VNDR_RTNG",
+    "description": "VENDOR RATING",
+    "table_type": "DWB",
+    "page": 141,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_VOID_LI",
+    "description": "VOIDS LINE ITEM",
+    "table_type": "DWB",
+    "page": 141,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWD_ACTVTY_RQST_DAY",
+    "description": "ACTIVITY REQUEST DAY DERIVED",
+    "table_type": "DWD",
+    "page": 141,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWD_COST_DAY",
+    "description": "COST DAY DERIVED",
+    "table_type": "DWD",
+    "page": 141,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWD_CUST_ORDR_LI_STATE",
+    "description": "CUSTOMER ORDER LINE ITEM STATE DERIVED",
+    "table_type": "DWD",
+    "page": 142,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWD_CUST_TYP_ORDR_ITEM_DAY",
+    "description": "CUSTOMER TYPE ORDER ITEM DAY DERIVED",
+    "table_type": "DWD",
+    "page": 142,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWD_INV_ADJ_ITEM_DAY",
+    "description": "INVENTORY ADJUSTMENT ITEM DAY DERIVED",
+    "table_type": "DWD",
+    "page": 142,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWD_INV_UNAVL_ITEM_DAY",
+    "description": "INVENTORY UNAVAILABLE ITEM DAY DERIVED",
+    "table_type": "DWD",
+    "page": 142,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWD_LIAB_DAY",
+    "description": "LIABILITY DAY DERIVED",
+    "table_type": "DWD",
+    "page": 142,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWD_PCHSE_ORDR_LI_STATE",
+    "description": "PURCHASE ORDER LINE ITEM STATE DERIVED",
+    "table_type": "DWD",
+    "page": 142,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWD_POS_RTL",
+    "description": "POS RETAIL",
+    "table_type": "DWD",
+    "page": 142,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWD_RTL_MRKDN_ITEM_DAY",
+    "description": "RETAIL MARKDOWN ITEM DAY DERIVED",
+    "table_type": "DWD",
+    "page": 142,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWD_RTL_TRX_EMP_WRKSTN_DAY",
+    "description": "RETAIL TRANSACTION EMP WORKSTATION DAY DERIVED",
+    "table_type": "DWD",
+    "page": 142,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWD_TILL",
+    "description": "TILL DERIVED",
+    "table_type": "DWD",
+    "page": 142,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWA_ACCT_RCVBL_MO",
+    "description": "ACCOUNT RECEIVABLE MONTH AGGR",
+    "table_type": "DWA",
+    "page": 142,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWA_ASSTS_MO",
+    "description": "ASSETS MONTH AGGR",
+    "table_type": "DWA",
+    "page": 143,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWA_CRTFCT_ACTVTY_DAY",
+    "description": "CERTIFICATE ACTIVITY DAY AGGR",
+    "table_type": "DWA",
+    "page": 143,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWA_CUST_TYP_ORDR_DEPT_MO",
+    "description": "CUSTOMER TYPE ORDER DEPARTMENT MONTH AGGR",
+    "table_type": "DWA",
+    "page": 143,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWA_INV_POSN_SBC_MO",
+    "description": "INVENTORY POSITION SUBCLASS MONTH AGGR",
+    "table_type": "DWA",
+    "page": 143,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWA_PCHSE_ORDR_DEPT_MO",
+    "description": "PURCHASE ORDER DEPARTMENT MONTH AGGR",
+    "table_type": "DWA",
+    "page": 143,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWA_PCHSE_ORDR_SBC_DAY",
+    "description": "PURCHASE ORDER SUBCLASS DAY AGGR",
+    "table_type": "DWA",
+    "page": 143,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWA_RTL_SL_RETRN_SBC_MO",
+    "description": "RETAIL SALE RETURN SUBCLASS MONTH AGGR",
+    "table_type": "DWA",
+    "page": 143,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWA_SPACE_UTLZTN_DEPT_DAY",
+    "description": "SPACE UTILIZATION DEPARTMENT DAY AGGR",
+    "table_type": "DWA",
+    "page": 143,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWC_ETL_PARAMETER",
+    "description": "For more information, see \"Intra-ETL Load Parameters Control",
+    "table_type": "DWC",
+    "page": 143,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWC_INTRA_ETL_ACTIVITY",
+    "description": "For more information, see \"Intra-ETL Monitoring Process Control",
+    "table_type": "DWC",
+    "page": 143,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWC_INTRA_ETL_PROCESS",
+    "description": "For more information, see \"Intra-ETL Monitoring Process Control",
+    "table_type": "DWC",
+    "page": 143,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWC_OLAP_ETL_PARAMETER",
+    "description": "For more information, see \"Intra-ETL OLAP Mapping Control",
+    "table_type": "DWC",
+    "page": 143,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWC_UOM_CONF",
+    "description": "UNIT OF MEASURE CONFIGURATION",
+    "table_type": "DWC",
+    "page": 143,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWA_ACCT_PAYBL_MO",
+    "description": "Account Payable Month level MV",
+    "table_type": "DWA",
+    "page": 148,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWA_ACTVTY_RQST_MO",
+    "description": "Activity Request Month level MV",
+    "table_type": "DWA",
+    "page": 148,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWA_CARRIER_CMPLNC_WK",
+    "description": "Carrier Compliance Week level MV",
+    "table_type": "DWA",
+    "page": 148,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWA_COST_MO",
+    "description": "Cost Month level MV",
+    "table_type": "DWA",
+    "page": 149,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWA_CUST_EMP_RLTNSHP_MO",
+    "description": "Customer Employee Relationship Month level MV",
+    "table_type": "DWA",
+    "page": 149,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWA_CUST_EMP_SL_RETRN_MO",
+    "description": "Customer Employee Sale Return Month level MV",
+    "table_type": "DWA",
+    "page": 149,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWA_CUST_TYP_ORDR_SBC_WK",
+    "description": "Orders at Customer Type, Subclass, Week level MV",
+    "table_type": "DWA",
+    "page": 149,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWA_INV_POSN_DEPT_DAY",
+    "description": "Inventory Position by Department Day level MV",
+    "table_type": "DWA",
+    "page": 149,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWA_INV_RCPT_SBC_WK",
+    "description": "Inventory Receipt by SubClass Week level MV",
+    "table_type": "DWA",
+    "page": 149,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWA_LIAB_MO",
+    "description": "Liabilities Month level MV",
+    "table_type": "DWA",
+    "page": 149,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWA_PCHSE_ORDR_LI_DAY",
+    "description": "Purchase Order Lineitem Day level MV",
+    "table_type": "DWA",
+    "page": 149,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWA_PCHSE_ORDR_LI_MO",
+    "description": "Purchase Order Lineitem Month level MV",
+    "table_type": "DWA",
+    "page": 149,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWA_POS_RTL_EMP_MO",
+    "description": "POS Retail Employee Month level MV",
+    "table_type": "DWA",
+    "page": 149,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWA_RTL_SL_RETRN_DEPT_DAY",
+    "description": "Retail Sale Return Department Day level MV",
+    "table_type": "DWA",
+    "page": 149,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWA_RTV_DEPT_DAY",
+    "description": "Return to Vendor Department Day level MV",
+    "table_type": "DWA",
+    "page": 149,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWA_RTV_SBC_MO",
+    "description": "Return to Vendor Subclass Month level MV",
+    "table_type": "DWA",
+    "page": 149,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWA_INV_POSN_SBC_MO_VIEW",
+    "description": "View defined over Day level Derived table DWD_INV_POSN_ITEM_DAY and",
+    "table_type": "DWA",
+    "page": 149,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWB_BUMP_BR_EQPMNT_STSTCS_",
+    "description": "INTERVAL BEGIN_TIME HALF YEAR DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 178,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_CNTRL_TRX",
+    "description": "INTERVAL BEGIN_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 178,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_COST_VALTN_LDGR_ACCT_",
+    "description": "INTERVAL DAY_KEY 100 DAYS DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 178,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_CRTFCT_ESCHTD_DAY",
+    "description": "INTERVAL DAY_KEY 100 DAYS DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 178,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_CS_DRWR_EQPMNT_STSTCS_",
+    "description": "INTERVAL BEGIN_TIME HALF YEAR DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 178,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_CUST_INFO_LI",
+    "description": "INTERVAL DAY_KEY 100 DAYS DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 178,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_CUST_INVC_ITEM",
+    "description": "INTERVAL ISUD_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 178,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_CUST_ORDR",
+    "description": "INTERVAL ORGNL_ORDR_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 178,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_CUST_ORDR_CNTRL_TRX_LI",
+    "description": "INTERVAL DAY_KEY 100 DAYS DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_CUST_ORDR_LI",
+    "description": "INTERVAL ORGNL_ORDR_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_CUST_ORDR_STATE",
+    "description": "INTERVAL ORDR_STATE_BEGIN_ MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_CUST_PYMT",
+    "description": "INTERVAL PYMT_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_CUST_RNTL_ACCT_HIST",
+    "description": "INTERVAL BEGIN_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_DEAL_VNDR_ITEM_ASGN",
+    "description": "HASH SKU_ITEM_KEY SKU ITEM DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_DEAL_VNDR_ITEM_COST_BRK",
+    "description": "HASH SKU_ITEM_KEY SKU ITEM DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_DPST_RDMPTN_LI",
+    "description": "INTERVAL DAY_KEY 100 DAYS DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_DVC_EVT",
+    "description": "INTERVAL ACT_STRT_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_EMP_ACT_LBR_SAL",
+    "description": "INTERVAL ACT_BEGIN_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_EMP_DISC_SL_HIST",
+    "description": "INTERVAL DAY_KEY 100 DAYS DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_EMP_TIME_ACCRUAL_HIST",
+    "description": "INTERVAL BEGIN_DT_TIME MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_EMP_TIME_PUNCH_ENTRY",
+    "description": "INTERVAL TIME_PUNCH_TIME MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_EVT",
+    "description": "INTERVAL ACT_STRT_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_EVT_PRTY_INTRACN_PRTCPTN",
+    "description": "INTERVAL PRTCPTN_STRT_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_FCL_PTR_EQPMNT_STSTCS_",
+    "description": "INTERVAL BEGIN_TIME MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_FLFLMNT_ACKNLGMNT_LI",
+    "description": "INTERVAL BEGIN_TIME MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_FOOD_SRVC_TRX",
+    "description": "INTERVAL DAY_KEY 100 DAYS DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_FRCST_ITEM_ORG_HRCHY_WK",
+    "description": "INTERVAL WK_KEY 100 WEEKS DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_FRGHT_DOC",
+    "description": "INTERVAL STORE_RCPT_TIME HALF YEAR DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_GL_JRNL_ENTRY_BTCH",
+    "description": "INTERVAL ACCT_DT HALF YEAR DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_GL_JRNL_ENTRY_LN",
+    "description": "INTERVAL ACCT_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_GL_SBLDGR_JRNL_ENTRY_LN",
+    "description": "INTERVAL ACCT_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_ICD_LI_ASGN",
+    "description": "INTERVAL EFF_FROM_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_INTRACN_TRNSFR_HIST",
+    "description": "INTERVAL TRNSFR_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_INV_ADJ_DOC",
+    "description": "INTERVAL INV_ADJ_DOC_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_INV_ADJ_DOC_LI",
+    "description": "INTERVAL INV_ADJ_DOC_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_INV_CNTRL_DOC_ASGN",
+    "description": "INTERVAL EFF_FROM_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_INV_CNTRL_DOC_LI",
+    "description": "INTERVAL INV_CNTRL_DOC_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 179,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_INV_SPACE_ALCTN",
+    "description": "INTERVAL ALCTN_DT HALF YEAR DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 180,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_ITEM_INV_JRNL_ENTRY",
+    "description": "INTERVAL EFF_FROM_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 180,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_KEY_LCK_EQPMNT_STSTCS_",
+    "description": "INTERVAL BEGIN_TIME MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 180,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_LN_DSPL_EQPMNT_STSTCS_",
+    "description": "INTERVAL BEGIN_TIME MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 180,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_MICR_EQPMNT_STTSTCS_",
+    "description": "INTERVAL BEGIN_TIME MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 180,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_MISCLNS_FEE_LI",
+    "description": "INTERVAL DAY_KEY 100 DAYS DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 180,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_MISS_SCHL",
+    "description": "INTERVAL DAY_KEY 100 DAYS DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 180,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_MNFCTR_INV_ITEM_STATE",
+    "description": "INTERVAL INV_STATE_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 180,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_MNFCTR_SKU_IM_SLNG_PRC_",
+    "description": "INTERVAL CURR_SL_URP_EFF_DT HALF YEAR DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 180,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_MTN_SNSR_EQPMT_STSTCS_",
+    "description": "INTERVAL BEGIN_TIME MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 180,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_NOZZLE_HIST",
+    "description": "INTERVAL STRT_TIME MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 180,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_ORDR",
+    "description": "INTERVAL ORGNL_ORDR_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 180,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_ORDR_LI_STATE",
+    "description": "INTERVAL ORDR_LI_STATE_ HALF YEAR DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 180,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_ORG_BSNS_UNIT_TRFC",
+    "description": "INTERVAL DAY_KEY 100 DAYS DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 180,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_PAYBL_INVC",
+    "description": "INTERVAL ISUD_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 180,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_PAYBL_INVC_ITEM",
+    "description": "INTERVAL ISUD_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 180,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_PCHSE_ORDR_LI",
+    "description": "INTERVAL ORGNL_ORDR_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 180,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_PCHSE_ORDR_LI_STATE",
+    "description": "INTERVAL ORGNL_ORDR_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 180,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_PHY_CNT_DOC",
+    "description": "INTERVAL PHY_CNT_BEGIN_DT YEAR DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 180,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_PHY_CNT_DOC_LI",
+    "description": "INTERVAL PHY_CNT_BEGIN_DT YEAR DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 180,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_PINPAD_EQPMNT_STTSTCS_",
+    "description": "INTERVAL BEGIN_TIME MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 180,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_POS_KEYBD_EQPMT_STSTS_",
+    "description": "INTERVAL BEGIN_TIME MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 180,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_POS_PRNTR_EQPMT_STSTS_",
+    "description": "INTERVAL BEGIN_TIME MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 180,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_PRICE_MODIFICATION_LI",
+    "description": "INTERVAL DAY_KEY 100 DAYS DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 180,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_PRMTN_HIST",
+    "description": "INTERVAL DAY_KEY 100 DAYS DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 180,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_PRTY_INTRACN_CALL_EVT",
+    "description": "INTERVAL INTRACN_STRT_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 180,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_PRTY_INTRACN_EML_EVT",
+    "description": "INTERVAL INTRACN_STRT_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 180,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_PRTY_INTRACN_THRD",
+    "description": "INTERVAL INTRACN_THRD_ MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 181,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_PRTY_INTRACN_THRD_EVT_",
+    "description": "INTERVAL EFF_FROM_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 181,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_PRTY_INTRACN_VST_EVT",
+    "description": "INTERVAL INTRACN_STRT_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 181,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_PRTY_INTRCN_THRD_STAT_",
+    "description": "INTERVAL EFF_FROM_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 181,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_PRTY_STAT_HIST",
+    "description": "INTERVAL EFF_FROM_DT HALF YEAR DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 181,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_RNDNG_LI",
+    "description": "INTERVAL DAY_KEY 100 DAYS DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 181,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_RTLR_PYMT",
+    "description": "INTERVAL PYMT_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 181,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_RTL_TNDR_LI",
+    "description": "INTERVAL DAY_KEY 100 DAYS DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 181,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_RTL_TRX_ASSOCT_ASGN",
+    "description": "INTERVAL EFF_FROM_DT DAY DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 181,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_RTL_TRX_LI_ASGN",
+    "description": "INTERVAL EFF_FROM_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 181,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_RTL_TRX_LI_GRP",
+    "description": "INTERVAL EFF_FROM_DT DAY DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 181,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_RTL_TRX_SHPMNT",
+    "description": "INTERVAL ACT_SHIP_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 181,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_RTL_TRX_SHPMNT_ITEM",
+    "description": "INTERVAL ACT_SHIP_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 181,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_SCL_EQPMNT_STTSTCS_RDNG",
+    "description": "INTERVAL BEGIN_TIME MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 181,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_SCNR_EQPMNT_STTSTCS_",
+    "description": "INTERVAL BEGIN_TIME MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 181,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_SGNTR_EQMT_CPTR_STSTS_",
+    "description": "INTERVAL BEGIN_TIME MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 181,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_SKU_ITEM_SLNG_PRICE",
+    "description": "INTERVAL CURR_SL_URP_EFF_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 181,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_SKU_ITEM_SLNG_PRICE_HIST",
+    "description": "INTERVAL CURR_SL_URP_EFF_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 181,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_SL_PLAN_ITEM_ORG_HRCHY_",
+    "description": "INTERVAL WK_KEY 100 WEEKS DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 181,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_SL_RETRN_TAX_OVRRD_MDFR",
+    "description": "INTERVAL DAY_KEY 100 DAYS DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 181,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_STCK_LDGR_ACCT_HIST",
+    "description": "INTERVAL DAY_KEY 100 DAYS DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 182,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_STCK_LDGR_JRNL_ENTRY",
+    "description": "INTERVAL EFF_FROM_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 182,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_SURVEY_RESPN_DTL",
+    "description": "INTERVAL SURVEY_DT HALF YEAR DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 182,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_SURVEY_RESPN_HDR",
+    "description": "INTERVAL SURVEY_DT HALF YEAR DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 182,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_TAX_LI",
+    "description": "INTERVAL DAY_KEY 100 DAYS DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 182,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_TILL_TAX_HIST",
+    "description": "INTERVAL DAY_KEY 100 DAYS DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 182,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_TILL_TNDR_HIST",
+    "description": "INTERVAL DAY_KEY 100 DAYS DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 182,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_TNDR_ATHRZTN",
+    "description": "INTERVAL ATHRZTN_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 182,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_TNDR_CNTRL_TRX",
+    "description": "INTERVAL DAY_KEY 100 DAYS DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 182,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_TNDR_CNTRL_TRX_TNDR_LI",
+    "description": "INTERVAL DAY_KEY 100 DAYS DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 182,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_TONE_IND_EQPMT_STSTCS_",
+    "description": "INTERVAL BEGIN_TIME MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 182,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_VNDR_SKU_COST_DAY",
+    "description": "INTERVAL DAY_KEY 100 DAYS DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 182,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWB_VNDR_STAT",
+    "description": "INTERVAL EFF_FROM_DT MONTH DW_BASE_TBS",
+    "table_type": "DWB",
+    "page": 182,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWD_ACCT_PAYBL_DAY",
+    "description": "INTERVAL DAY_KEY DAY DW_DERIVED_TBS",
+    "table_type": "DWD",
+    "page": 182,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWD_ACCT_RCVBL_DAY",
+    "description": "INTERVAL DAY_KEY DAY DW_DERIVED_TBS",
+    "table_type": "DWD",
+    "page": 182,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWD_ASSTS_DAY",
+    "description": "INTERVAL DAY_KEY DAY DW_DERIVED_TBS",
+    "table_type": "DWD",
+    "page": 182,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWD_CARRIER_CMPLNC_DAY",
+    "description": "INTERVAL DAY_KEY DAY DW_DERIVED_TBS",
+    "table_type": "DWD",
+    "page": 182,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWD_CRTFCT_ACTVTY_TRX",
+    "description": "INTERVAL DAY_KEY DAY DW_DERIVED_TBS",
+    "table_type": "DWD",
+    "page": 182,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWD_CUST_EMP_RLTNSHP_DAY",
+    "description": "INTERVAL DAY_KEY DAY DW_DERIVED_TBS",
+    "table_type": "DWD",
+    "page": 182,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWD_CUST_RFMP_SCR",
+    "description": "INTERVAL MO_KEY 100 MONTHS DW_DERIVED_TBS",
+    "table_type": "DWD",
+    "page": 182,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWD_CUST_SKU_SL_RETRN_DAY",
+    "description": "INTERVAL DAY_KEY DAY DW_DERIVED_TBS",
+    "table_type": "DWD",
+    "page": 182,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWD_EMP_WG_PYMT_DAY",
+    "description": "INTERVAL DAY_KEY DAY DW_DERIVED_TBS",
+    "table_type": "DWD",
+    "page": 182,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWD_INV_POSN_ITEM_DAY",
+    "description": "INTERVAL DAY_KEY DAY DW_DERIVED_TBS",
+    "table_type": "DWD",
+    "page": 182,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWD_INV_RCPT_ITEM_DAY",
+    "description": "INTERVAL DAY_KEY DAY DW_DERIVED_TBS",
+    "table_type": "DWD",
+    "page": 182,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWD_INV_VNDR_CMPLNC_DAY",
+    "description": "INTERVAL DAY_KEY DAY DW_DERIVED_TBS",
+    "table_type": "DWD",
+    "page": 182,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWD_INV_XFER_ITEM_DAY",
+    "description": "INTERVAL DAY_KEY DAY DW_DERIVED_TBS",
+    "table_type": "DWD",
+    "page": 182,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWD_ORG_BSNS_UNT_HRS_DAY",
+    "description": "INTERVAL DAY_KEY DAY DW_DERIVED_TBS",
+    "table_type": "DWD",
+    "page": 183,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWD_ORG_BSNS_UNT_TRFC_DAY",
+    "description": "INTERVAL DAY_KEY DAY DW_DERIVED_TBS",
+    "table_type": "DWD",
+    "page": 183,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWD_PCHSE_ORDR_STATE",
+    "description": "INTERVAL ORGNL_ORDR_DT MONTH DW_DERIVED_TBS",
+    "table_type": "DWD",
+    "page": 183,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWD_POS_CNTRL",
+    "description": "INTERVAL DAY_KEY DAY DW_DERIVED_TBS",
+    "table_type": "DWD",
+    "page": 183,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWD_POS_STORE_FINCL",
+    "description": "INTERVAL DAY_KEY DAY DW_DERIVED_TBS",
+    "table_type": "DWD",
+    "page": 183,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWD_POS_TNDR_FLOW",
+    "description": "INTERVAL DAY_KEY DAY DW_DERIVED_TBS",
+    "table_type": "DWD",
+    "page": 183,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWD_RTL_SL_RETRN_ITEM_DAY",
+    "description": "INTERVAL DAY_KEY DAY DW_DERIVED_TBS",
+    "table_type": "DWD",
+    "page": 183,
+    "brd_domain": "Y"
+  },
+  {
+    "table_name": "DWD_RTV_ITEM_DAY",
+    "description": "INTERVAL DAY_KEY DAY DW_DERIVED_TBS",
+    "table_type": "DWD",
+    "page": 183,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWD_SPACE_UTLZTN_ITEM_DAY",
+    "description": "INTERVAL DAY_KEY DAY DW_DERIVED_TBS",
+    "table_type": "DWD",
+    "page": 183,
+    "brd_domain": "N"
+  },
+  {
+    "table_name": "DWD_VNDR_CMPLNC_ITEM_DAY",
+    "description": "INTERVAL DAY_KEY DAY DW_DERIVED_TBS",
+    "table_type": "DWD",
+    "page": 183,
+    "brd_domain": "Y"
+  }
+]

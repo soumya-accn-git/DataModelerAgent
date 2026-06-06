@@ -196,6 +196,30 @@ def render_sidebar():
                 except Exception as e:
                     st.error(f"Seed failed: {e}")
 
+        if st.button("🔬 Seed Oracle RDM (all 927 entities)", use_container_width=True):
+            with st.spinner("Seeding all Oracle RDM entities + tables…"):
+                try:
+                    from agent.oracle_rdm_seeder import seed_oracle_rdm
+                    ph = st.empty()
+                    counts = seed_oracle_rdm(
+                        chroma_path=st.session_state.get("chroma_path", "./chroma_db"),
+                        on_log=lambda m: ph.caption(m),
+                    )
+                    ph.empty()
+                    ldm_n = counts.get("ldm", 0)
+                    pdm_n = counts.get("pdm", 0)
+                    if ldm_n == 0 and pdm_n == 0:
+                        st.info("Already seeded — brd_domain=Y filter applied at query time")
+                    else:
+                        st.success(
+                            "✅ Seeded: oracle_rdm_ldm=" + str(ldm_n) +
+                            " entities, oracle_rdm_pdm=" + str(pdm_n) + " tables"
+                        )
+                except FileNotFoundError as fe:
+                    st.error("JSON files not found. Run PDF extractor first. " + str(fe))
+                except Exception as e:
+                    st.error("Oracle RDM seed failed: " + str(e))
+
         # Pipeline mode is chosen from run buttons in the upload panel
         mode = st.session_state.get("pipeline_mode", "CDM only")
         mode_colors = {
