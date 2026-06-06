@@ -15,3 +15,7 @@ chroma_db/
 .env
 Neo4j_instance_detl.txt
 Some details.txt
+
+# Local working documents (BRD inputs, scratch)
+BRD/
+New files/
