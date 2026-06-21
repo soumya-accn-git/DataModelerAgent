@@ -19,3 +19,14 @@ Some details.txt
 # Local working documents (BRD inputs, scratch)
 BRD/
 New files/
+
+# Runtime-generated outputs (CDM/LDM/PDM files and cache)
+Data Models Generated/
+ontology/generated/
+!ontology/generated/.gitkeep
+
+# Claude Code memory (local to this machine)
+.claude/
+
+# Stray pip artifacts
+=*

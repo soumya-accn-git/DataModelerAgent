@@ -3,11 +3,11 @@ Central configuration for DataModelerAgent.
 
 Credentials are loaded in this priority order:
   1. System environment variables (highest priority)
-  2. .env file (if present)
-  3. Neo4j_instance_detl.txt (Aura connection file — authoritative source)
+  2. .env file (canonical secrets source — git-ignored)
+  3. Neo4j_instance_detl.txt (legacy fallback)
   4. Hardcoded defaults (lowest priority)
 
-To update Neo4j credentials: edit Neo4j_instance_detl.txt
+To update credentials: edit .env (copy from .env.example if missing)
 """
 
 import os
@@ -37,8 +37,8 @@ def _load_file(filename: str) -> None:
 
 
 # Load in reverse priority (later = higher priority, won't overwrite earlier)
-_load_file("Neo4j_instance_detl.txt")   # Aura connection file
-_load_file(".env")                        # local overrides
+_load_file("Neo4j_instance_detl.txt")   # legacy fallback
+_load_file(".env")                        # canonical secrets source (wins)
 
 
 # ── Neo4j Aura (from Neo4j_instance_detl.txt) ─────────────────────────────────

@@ -1,0 +1,104 @@
+# OWL Inference Rules R1–R6
+# Applied by: src/knowledge/rules.py and src/pipeline/step4b_owl_rules.py
+# These rules infer missing entities and relationships from BRD keywords.
+
+rules:
+
+  R1_dimension_keywords:
+    id: R1
+    name: "Dimension keyword inference"
+    description: >
+      If an entity name contains known dimension keywords, classify it as dimension
+      even if the LLM classified it differently.
+    keywords:
+      - customer
+      - product
+      - store
+      - location
+      - date
+      - time
+      - employee
+      - supplier
+      - vendor
+      - category
+      - channel
+      - region
+      - market
+    action: "set entity.type = dimension"
+
+  R2_fact_keywords:
+    id: R2
+    name: "Fact keyword inference"
+    description: >
+      If an entity name contains known fact/transaction keywords, classify as fact.
+    keywords:
+      - sales
+      - transaction
+      - order
+      - inventory
+      - purchase
+      - payment
+      - shipment
+      - receipt
+      - invoice
+      - return
+      - adjustment
+    action: "set entity.type = fact"
+
+  R3_time_dimension:
+    id: R3
+    name: "Time dimension auto-add"
+    description: >
+      If any fact entity exists and no Date/Time dimension is present,
+      infer a Date dimension as a required component.
+    condition: "fact entities > 0 AND no dimension with name matching /date|time|period/i"
+    action: "infer entity {name: Date, type: dimension, description: Calendar date dimension}"
+
+  R4_bridge_inference:
+    id: R4
+    name: "Bridge table inference"
+    description: >
+      If a many-to-many relationship exists between two dimensions,
+      infer a bridge entity to resolve it.
+    condition: "relationship.cardinality == many-to-many AND both endpoints are dimension type"
+    action: "infer bridge entity {name: {From}{To}Bridge, type: bridge}"
+
+  R5_forbidden_suffix_removal:
+    id: R5
+    name: "Forbidden suffix removal"
+    description: >
+      Remove entities whose names end with forbidden suffixes — these are
+      reports/dashboards/UI controls, not data entities.
+    forbidden_suffixes:
+      - Report
+      - Dashboard
+      - KPI
+      - Metric
+      - Filter
+      - Prompt
+      - View
+      - Screen
+      - Page
+      - Panel
+    action: "remove entity, log SHACL violation"
+
+  R6_filter_to_dimension:
+    id: R6
+    name: "Filter/Prompt to Dimension inference"
+    description: >
+      UI filters and prompts imply underlying dimension entities.
+      Strip filter suffixes and infer the dimension they represent.
+    filter_suffixes:
+      - Filter
+      - Prompt
+      - Selector
+      - Picker
+      - Dropdown
+      - Checkbox
+      - Toggle
+      - Input
+      - Parameter
+      - Criteria
+      - Option
+      - Control
+    action: "infer dimension entity from filter subject word"

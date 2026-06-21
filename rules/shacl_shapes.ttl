@@ -1,0 +1,62 @@
+# SHACL Shapes — DataModelerAgent validation constraints
+# Applied by: src/pipeline/step4b_owl_rules.py
+# Format: Turtle (application/x-turtle)
+
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix dm:   <http://datamodeler.accenture.com/ontology#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# ── Entity shapes ─────────────────────────────────────────────────────────────
+
+dm:EntityShape
+    a sh:NodeShape ;
+    sh:targetClass dm:Entity ;
+
+    sh:property [
+        sh:path dm:entityType ;
+        sh:in ( "dimension" "fact" "reference" "bridge" ) ;
+        sh:message "entity.type must be one of: dimension, fact, reference, bridge" ;
+    ] ;
+
+    sh:property [
+        sh:path dm:name ;
+        sh:pattern "^[A-Z][A-Za-z0-9]+$" ;
+        sh:message "entity.name must be PascalCase, letters and digits only" ;
+    ] ;
+
+    sh:property [
+        sh:path dm:name ;
+        sh:maxLength 50 ;
+        sh:message "entity.name must not exceed 50 characters" ;
+    ] .
+
+# ── Fact entity shapes ────────────────────────────────────────────────────────
+
+dm:FactEntityShape
+    a sh:NodeShape ;
+    sh:targetClass dm:FactEntity ;
+
+    sh:property [
+        sh:path dm:hasDateDimensionFK ;
+        sh:minCount 1 ;
+        sh:message "Every fact entity must have at least one Date dimension foreign key" ;
+    ] .
+
+# ── LDM table shapes ──────────────────────────────────────────────────────────
+
+dm:LDMTableShape
+    a sh:NodeShape ;
+    sh:targetClass dm:LDMTable ;
+
+    sh:property [
+        sh:path dm:tableName ;
+        sh:pattern "^(DIM_|FACT_|BRIDGE_|REF_|STG_|ETL_)[A-Z_]+$" ;
+        sh:message "LDM table name must start with DIM_, FACT_, BRIDGE_, REF_, STG_, or ETL_" ;
+    ] ;
+
+    sh:property [
+        sh:path dm:grain ;
+        sh:minLength 5 ;
+        sh:message "LDM table must declare a grain (min 5 chars)" ;
+    ] .

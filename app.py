@@ -75,16 +75,21 @@ hr { margin: 0.4rem 0 !important; }
 
 
 
-from ui.sidebar import render_sidebar
-from ui.upload import render_upload
-from ui.pipeline_ui import render_pipeline
-from ui.output import render_output
+from src.ui.sidebar import render_sidebar
+from src.ui.upload import render_upload
+from src.ui.pipeline_ui import render_pipeline
+from src.ui.output import render_output
+from src.ui.ldm_output import render_ldm_output
+from src.ui.chat import render_chat
 
 def main():
     defaults = {
         "pipeline_result":        None,
         "ldm_result":             None,
+        "pdm_result":             None,
         "pipeline_running":       False,
+        "pipeline_status":        None,
+        "show_pipeline_status":   False,
         "use_cache":              False,
         "previous_brd_hash":      None,
         "cached_pipeline_result": None,
@@ -95,6 +100,13 @@ def main():
         "temperature":            0.1,
         "top_ontology_k":         3,
         "max_chunks":             4,
+        "bq_project":             "your_gcp_project",
+        "bq_dataset":             "MERCH_DW",
+        # chat
+        "chat_messages":           [],
+        "chat_triggered_pipeline": False,
+        "chat_pipeline_mode":      None,
+        "current_uploaded_file":   None,
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -104,6 +116,7 @@ def main():
 
     render_sidebar()
     render_upload()
+    render_chat()
 
     if st.session_state.get("pipeline_running") and st.session_state.get("trigger_file"):
         render_pipeline(st.session_state["trigger_file"])
@@ -115,15 +128,7 @@ def main():
     if cdm_result:
         render_output(cdm_result)
     elif ldm_result:
-        # LDM-only mode: no CDM result but LDM exists — show minimal CDM wrapper
-        placeholder_cdm = {
-            "entities": [],
-            "relationships": [],
-            "stats": {"entity_count": 0, "relationship_count": 0},
-            "domain": {"name": "LDM only mode", "description": ""},
-            "sections": [],
-        }
-        render_output(placeholder_cdm)
+        render_ldm_output(ldm_result)
 
 if __name__ == "__main__":
     main()
