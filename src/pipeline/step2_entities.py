@@ -29,7 +29,7 @@ SKILL_PATH = os.path.join(
 HARD_FORBIDDEN_SUFFIXES = {
     "report","dashboard","scorecard","analysis","overview","summary",
     "monitor","tracker","snapshot","analytics","portal","feed","digest",
-    "listing","ranking","top10",
+    "listing","ranking","top10","subjectarea",
 }
 # Suffixes that usually denote a measure/attribute of a fact (not an entity) —
 # rejected UNLESS the entity is a reference (lookup) table, e.g. ExchangeRate.
@@ -46,6 +46,8 @@ FORBIDDEN_EXACT = {
     "top10","kpi","metric","report","dashboard",
     "summary","analysis","view","data","information"
 }
+# Names containing "Top<N>" anywhere (not just as suffix) are ranking queries.
+_FORBIDDEN_INFIX_RE = re.compile(r'top\d+', re.IGNORECASE)
 VALID_TYPES = {"dimension","fact","reference","bridge"}
 
 # ── Deterministic type reclassification ───────────────────────────────────────
@@ -244,6 +246,7 @@ def extract_entities(
     sections:         list  = None,
     on_log                  = None,
     max_chunks:       int   = 4,      # kept for API compat
+    oltp_context:     str   = "",     # compact source-system summary (optional)
 ) -> list[dict]:
     """
     Two-pass entity extraction with deterministic GraphRAG merge.
@@ -256,6 +259,12 @@ def extract_entities(
         if on_log: on_log(msg)
 
     skill_text = load_skill(SKILL_PATH)
+
+    # Append OLTP source context to the skill text when provided — gives the
+    # LLM a source-system signal so it can infer fact/dimension entities from
+    # the actual tables that will feed the data warehouse.
+    if oltp_context:
+        skill_text = skill_text + "\n\n" + oltp_context
 
     # ── Pass 1a — Full document scan ─────────────────────────────────────────
     log("Pass 1a — full document scan…")
@@ -383,6 +392,8 @@ def _merge_graph_nodes(
             continue
         if any(name_lower.endswith(s) for s in HARD_FORBIDDEN_SUFFIXES):
             continue
+        if _FORBIDDEN_INFIX_RE.search(name_lower):
+            continue
         if cdm_type != "reference" and any(
             name_lower.endswith(s) for s in SOFT_FORBIDDEN_SUFFIXES
         ):
@@ -455,12 +466,25 @@ def _validate_and_clean(raw: list) -> list[dict]:
             if any(name_lower.endswith(s) for s in HARD_FORBIDDEN_SUFFIXES):
                 print(f"[step2] Rejected (report/view artifact): {name}")
                 continue
+            # Infix check — e.g. CurrentTop10SaleItems (ranking report, not a table)
+            if _FORBIDDEN_INFIX_RE.search(name_lower):
+                print(f"[step2] Rejected (ranking/top-N infix): {name}")
+                continue
             # Soft suffixes (rate/ratio/metric/view…) are measures/attributes
             # unless the entity is a reference (lookup) table — keep those.
             if entity_type != "reference" and any(
                 name_lower.endswith(s) for s in SOFT_FORBIDDEN_SUFFIXES
             ):
                 print(f"[step2] Rejected (metric/attribute, not an entity): {name}")
+                continue
+            # Description-based filter: the LLM sometimes extracts a report/dashboard
+            # artifact that has no forbidden suffix but whose own description calls it
+            # a "report" or "dashboard" (e.g. "Current Sales Profit Contribution report").
+            desc_lower = e.get("description", "").lower()
+            if (desc_lower
+                    and entity_type != "reference"
+                    and re.search(r'\breport\b|\bdashboard\b', desc_lower)):
+                print(f"[step2] Rejected (described as report/dashboard): {name}")
                 continue
 
         # Deduplicate — keep richer entry

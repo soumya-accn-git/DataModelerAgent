@@ -27,7 +27,14 @@ def _trigger(uploaded, mode: str):
     st.session_state["pipeline_running"] = True
     st.session_state["trigger_file"]     = uploaded
     st.session_state["use_cache"]        = False
-    st.session_state["pipeline_result"]  = None
+    # For LDM-only / PDM-only the upstream result (CDM / LDM) is the *input*
+    # to the pipeline — preserve it so the thread can use it without needing
+    # to go through the _restore_cached round-trip.  For CDM runs clear the
+    # stale CDM so the new result is always fresh.
+    if mode not in ("LDM only", "PDM only"):
+        st.session_state["pipeline_result"] = None
+    if mode not in ("PDM only",):
+        st.session_state["ldm_result"] = None
     st.session_state["previous_brd_hash"] = _file_hash(uploaded)
     st.rerun()
 

@@ -9,6 +9,9 @@ Step 4   — Relationship detection (GraphRAG context + LLM)
 Step 5   — ChromaDB ontology enrichment
 Step 5b  — OWL/SHACL rules engine (R1–R6, filter inference, bridges)
 Step 6   — CDM generation (Mermaid, JSON-LD, graph view)
+
+LLM calls (steps 1b, 2, 3, 4) route to Claude Sonnet 4.6 via the same
+Claude CLI subprocess mechanism used by brd_parser_claude.bat.
 """
 
 import sys, os, json, hashlib, threading
@@ -33,6 +36,11 @@ from src.pipeline.step3_relationships      import detect_relationships
 from src.pipeline.step4_ontology           import enrich_with_ontology
 from src.pipeline.step4b_owl_rules         import apply_owl_rules
 from src.pipeline.cdm_builder              import build_cdm
+try:
+    from src.knowledge.oltp_schema_seeder import seed_oltp_schema as _seed_oltp
+    _OLTP_SEED_AVAILABLE = True
+except ImportError:
+    _OLTP_SEED_AVAILABLE = False
 
 GENERATED_DIR = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "ontology", "generated"
@@ -144,7 +152,6 @@ def run_pipeline(
     neo4j_user_use = neo4j_user or _CFG_NEO4J_USER
     neo4j_pass_use = neo4j_password or _CFG_NEO4J_PASS
 
-    # Check GraphRAG cache
     graphrag_cache_path = os.path.join(GENERATED_DIR, f"{brd_h}_graphrag.json")
     cached_graphrag = None
     if os.path.exists(graphrag_cache_path):
@@ -174,7 +181,6 @@ def run_pipeline(
                 brd_hash=brd_h,
                 on_log=_log,
             )
-            # Save full result to cache
             try:
                 with open(graphrag_cache_path, "w", encoding="utf-8") as f:
                     json.dump(graphrag_result, f)
@@ -209,6 +215,16 @@ def run_pipeline(
     _start(3)
     sections = parsed.get("sections", [])
     _log(f"Extracting entities — LLM full-doc scan + deterministic GraphRAG merge…")
+
+    oltp_ctx = ""
+    if _OLTP_SEED_AVAILABLE:
+        try:
+            from src.knowledge.oltp_schema_seeder import get_source_summary
+            oltp_ctx = get_source_summary()
+            _log("  OLTP source context loaded — injecting source-system signal")
+        except Exception as _e:
+            _log(f"  OLTP context warning (non-fatal): {_e}")
+
     entities = extract_entities(
         brd_text=brd_text,
         ollama_url=ollama_url,
@@ -219,6 +235,7 @@ def run_pipeline(
         sections=sections,
         on_log=_log,
         max_chunks=max_chunks,
+        oltp_context=oltp_ctx,
     )
     _done(3, f"{len(entities)} entities found")
     if not entities:
@@ -242,6 +259,12 @@ def run_pipeline(
     _done(4, f"{len(relationships)} relationships detected")
 
     # ── Step 5 — ChromaDB ontology enrichment ─────────────────────────────
+    if _OLTP_SEED_AVAILABLE:
+        try:
+            _seed_oltp(chroma_path=chroma_path, force=False, on_log=_log)
+        except Exception as _e:
+            _log(f"OLTP schema seed warning (non-fatal): {_e}")
+
     _start(5)
     _log("Querying ChromaDB for ontology matches…")
     entities, relationships = enrich_with_ontology(
@@ -301,9 +324,8 @@ def run_pipeline(
         f"{cdm['stats']['relationship_count']} relationships"
     )
 
-    # Persist CDM to disk keyed by BRD hash
     cdm["_brd_hash"] = brd_h
-    cdm["_brd_text"] = brd_text   # stored for LDM-only re-runs
+    cdm["_brd_text"] = brd_text
     try:
         cdm_path = save_cdm(brd_h, cdm)
         _log(f"CDM saved → {os.path.basename(cdm_path)}")

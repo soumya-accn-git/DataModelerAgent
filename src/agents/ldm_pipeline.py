@@ -14,6 +14,7 @@ from src.agents.pipeline_agent import PipelineCancelledError
 from src.knowledge.ldm_seeder           import seed_oracle_reference, query_oracle_reference
 from src.knowledge.ri_metrics           import seed_ri_metrics
 from src.knowledge.oracle_rdm_seeder    import seed_oracle_rdm
+from src.knowledge.oltp_schema_seeder  import seed_oltp_schema
 from src.pipeline.step_ldm_promote     import promote_cdm_to_ldm
 from src.agents.ldm_validation_agent import run_with_repair
 
@@ -58,7 +59,7 @@ def run_ldm_pipeline(
         if on_log: on_log(msg)
 
     # ── Step A — Oracle reference seeder ──────────────────────────────────────
-    start("Step A — Oracle reference seeder")
+    start("Step A — Oracle seeder")
     log("Checking Oracle Retail reference collection…")
     try:
         n = seed_oracle_reference(
@@ -89,17 +90,29 @@ def run_ldm_pipeline(
         except Exception as e:
             log(f"Oracle RDM seed warning: {e} — continuing")
 
+        # Seed the OLTP source schema (retail merchandising OLTP tables as RAG
+        # grounding for column-level LDM/PDM generation).
+        oltp_bit = "OLTP skipped"
+        try:
+            log("Checking OLTP source schema collection…")
+            oltp_n = seed_oltp_schema(chroma_path=chroma_path, force=False, on_log=log)
+            oltp_bit = ("⚡ OLTP schema cached" if oltp_n == 0
+                        else f"{oltp_n} OLTP tables seeded")
+        except Exception as e:
+            log(f"OLTP schema seed warning: {e} — continuing")
+
         seeded_bits = []
         seeded_bits.append("⚡ reference cached" if n == 0 else f"{n} reference chunks")
         seeded_bits.append("⚡ metrics cached" if m == 0 else f"{m} metric areas")
         seeded_bits.append(rdm_bit)
-        done("Step A — Oracle reference seeder", " · ".join(seeded_bits))
+        seeded_bits.append(oltp_bit)
+        done("Step A — Oracle seeder", " · ".join(seeded_bits))
     except Exception as e:
         log(f"Oracle seeder warning: {e} — continuing with empty reference")
-        done("Step A — Oracle reference seeder", f"⚠️ {e}")
+        done("Step A — Oracle seeder", f"⚠️ {e}")
 
     # ── Step B — CDM → LDM promotion ─────────────────────────────────────────
-    start("Step B — CDM → LDM promotion")
+    start("Step B — CDM→LDM")
     log("Promoting CDM entities to LDM table definitions…")
     try:
         ldm_result = promote_cdm_to_ldm(
@@ -112,7 +125,7 @@ def run_ldm_pipeline(
             on_log=log,
         )
         n_tables = ldm_result.get("entity_count", 0)
-        done("Step B — CDM → LDM promotion",
+        done("Step B — CDM→LDM",
              f"{n_tables} tables defined "
              f"({len(ldm_result.get('dimension_tables',[]))} dims, "
              f"{len(ldm_result.get('fact_tables',[]))} facts)")

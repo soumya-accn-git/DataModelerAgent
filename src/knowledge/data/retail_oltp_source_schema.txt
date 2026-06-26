@@ -1,0 +1,619 @@
+RETAIL OLTP SCHEMA — MERCHANDISING SCORECARD & ANALYTICS
+
+Version: 1.0
+Purpose: OLTP schema design with descriptions and DDLs for Retail Merchandising Sales, Profit, Markdown, Season Performance, Location Analysis, and Forecast metrics.
+
+=================================================================
+1. OVERVIEW
+=================================================================
+
+This OLTP schema supports retail merchandising operations required for the following dashboard and analytical areas:
+
+1. Merchandising Scorecard — Merchandise Sales and Profit dashboard
+   - Current Top 10 Sale Items
+   - Current Sales & Profit Contribution
+
+2. Merchandising Scorecard — Markdowns dashboard
+   - Current Markdown Scorecard
+   - Markdown to Sales Ratio
+
+3. Merchandising Scorecard — Merchandise Performance dashboard
+   - Season Performance
+
+4. Merchandising Analysis — Merchandising Location Analysis dashboard
+   - Daily Sales & Profit
+   - Current Sales Projection
+
+5. Retail metrics coverage
+   - Sales & Profit metrics
+   - Cost / Profit metrics
+   - Markdown / Markup metrics
+   - Sales Forecast metrics
+
+=================================================================
+2. RECOMMENDED OLTP SUBJECT AREAS
+=================================================================
+
+A. MASTER DATA
+
+1. Product / Item Master — item, item_supplier, supplier
+2. Merchandise Hierarchy — merch_division, merch_group, department, merch_class, merch_subclass
+3. Organization / Location Hierarchy — org_chain, region, district, store
+4. Season — season, item_season
+5. Price Book — item_price
+6. Cost Book — item_cost
+7. Calendar — business_calendar
+
+B. TRANSACTION DATA
+
+1. Sales Transaction — sales_transaction_header, sales_transaction_line
+2. Markdown Event — markdown_event
+3. Markup Event — markup_event
+4. Inventory Snapshot — inventory_snapshot
+5. Sales Forecast — sales_forecast
+6. Optional Daily Summary — daily_item_store_sales_summary
+
+=================================================================
+3. TABLE DDLs AND DESCRIPTIONS
+=================================================================
+
+-----------------------------------------------------------------
+4.1 MERCHANDISE HIERARCHY
+-----------------------------------------------------------------
+
+Purpose:
+The merchandise hierarchy supports rollups from item/SKU to subclass, class, department, group, and division.
+
+Tables: merch_division, merch_group, department, merch_class, merch_subclass
+
+DDL:
+
+CREATE TABLE merch_division (
+    division_id        BIGINT PRIMARY KEY,
+    division_code      VARCHAR(30) NOT NULL UNIQUE,
+    division_name      VARCHAR(100) NOT NULL,
+    active_flag        CHAR(1) DEFAULT 'Y',
+    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP
+);
+
+CREATE TABLE merch_group (
+    group_id           BIGINT PRIMARY KEY,
+    division_id        BIGINT NOT NULL,
+    group_code         VARCHAR(30) NOT NULL UNIQUE,
+    group_name         VARCHAR(100) NOT NULL,
+    active_flag        CHAR(1) DEFAULT 'Y',
+    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP,
+    CONSTRAINT fk_group_division FOREIGN KEY (division_id) REFERENCES merch_division(division_id)
+);
+
+CREATE TABLE department (
+    department_id      BIGINT PRIMARY KEY,
+    group_id           BIGINT NOT NULL,
+    department_code    VARCHAR(30) NOT NULL UNIQUE,
+    department_name    VARCHAR(100) NOT NULL,
+    active_flag        CHAR(1) DEFAULT 'Y',
+    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP,
+    CONSTRAINT fk_department_group FOREIGN KEY (group_id) REFERENCES merch_group(group_id)
+);
+
+CREATE TABLE merch_class (
+    class_id           BIGINT PRIMARY KEY,
+    department_id      BIGINT NOT NULL,
+    class_code         VARCHAR(30) NOT NULL,
+    class_name         VARCHAR(100) NOT NULL,
+    active_flag        CHAR(1) DEFAULT 'Y',
+    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP,
+    CONSTRAINT uq_class UNIQUE (department_id, class_code),
+    CONSTRAINT fk_class_department FOREIGN KEY (department_id) REFERENCES department(department_id)
+);
+
+CREATE TABLE merch_subclass (
+    subclass_id        BIGINT PRIMARY KEY,
+    class_id           BIGINT NOT NULL,
+    subclass_code      VARCHAR(30) NOT NULL,
+    subclass_name      VARCHAR(100) NOT NULL,
+    active_flag        CHAR(1) DEFAULT 'Y',
+    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP,
+    CONSTRAINT uq_subclass UNIQUE (class_id, subclass_code),
+    CONSTRAINT fk_subclass_class FOREIGN KEY (class_id) REFERENCES merch_class(class_id)
+);
+
+-----------------------------------------------------------------
+4.2 ITEM / PRODUCT MASTER
+-----------------------------------------------------------------
+
+Purpose:
+The item master stores sellable SKU/item information. Connects item-level sales, markdowns, markups, pricing, cost, supplier, and season data to the merchandise hierarchy.
+
+Tables: item, supplier, item_supplier
+
+DDL:
+
+CREATE TABLE item (
+    item_id            BIGINT PRIMARY KEY,
+    item_number        VARCHAR(50) NOT NULL UNIQUE,
+    item_description   VARCHAR(255) NOT NULL,
+    subclass_id        BIGINT NOT NULL,
+    brand_name         VARCHAR(100),
+    item_type          VARCHAR(50),
+    size_desc          VARCHAR(50),
+    color_desc         VARCHAR(50),
+    style_code         VARCHAR(50),
+    uom_code           VARCHAR(20) DEFAULT 'EA',
+    launch_date        DATE,
+    discontinue_date   DATE,
+    active_flag        CHAR(1) DEFAULT 'Y',
+    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP,
+    CONSTRAINT fk_item_subclass FOREIGN KEY (subclass_id) REFERENCES merch_subclass(subclass_id)
+);
+
+CREATE TABLE supplier (
+    supplier_id        BIGINT PRIMARY KEY,
+    supplier_code      VARCHAR(30) NOT NULL UNIQUE,
+    supplier_name      VARCHAR(150) NOT NULL,
+    supplier_type      VARCHAR(50),
+    active_flag        CHAR(1) DEFAULT 'Y',
+    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP
+);
+
+CREATE TABLE item_supplier (
+    item_supplier_id   BIGINT PRIMARY KEY,
+    item_id            BIGINT NOT NULL,
+    supplier_id        BIGINT NOT NULL,
+    primary_supplier_flag CHAR(1) DEFAULT 'N',
+    supplier_item_code VARCHAR(50),
+    effective_from     DATE NOT NULL,
+    effective_to       DATE,
+    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP,
+    CONSTRAINT uq_item_supplier UNIQUE (item_id, supplier_id, effective_from),
+    CONSTRAINT fk_item_supplier_item FOREIGN KEY (item_id) REFERENCES item(item_id),
+    CONSTRAINT fk_item_supplier_supplier FOREIGN KEY (supplier_id) REFERENCES supplier(supplier_id)
+);
+
+-----------------------------------------------------------------
+4.3 SEASON MASTER AND ITEM SEASON MAPPING
+-----------------------------------------------------------------
+
+Purpose:
+Season tables support retail seasonal planning. Item-season mapping allows sales, profit, markdowns, and inventory to be evaluated by season.
+
+Tables: season, item_season
+
+DDL:
+
+CREATE TABLE season (
+    season_id          BIGINT PRIMARY KEY,
+    season_code        VARCHAR(30) NOT NULL UNIQUE,
+    season_name        VARCHAR(100) NOT NULL,
+    season_year        INTEGER NOT NULL,
+    start_date         DATE NOT NULL,
+    end_date           DATE NOT NULL,
+    active_flag        CHAR(1) DEFAULT 'Y',
+    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP
+);
+
+CREATE TABLE item_season (
+    item_season_id     BIGINT PRIMARY KEY,
+    item_id            BIGINT NOT NULL,
+    season_id          BIGINT NOT NULL,
+    planned_sales_qty  NUMERIC(18,4),
+    planned_sales_amt  NUMERIC(18,4),
+    planned_margin_amt NUMERIC(18,4),
+    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP,
+    CONSTRAINT uq_item_season UNIQUE (item_id, season_id),
+    CONSTRAINT fk_item_season_item FOREIGN KEY (item_id) REFERENCES item(item_id),
+    CONSTRAINT fk_item_season_season FOREIGN KEY (season_id) REFERENCES season(season_id)
+);
+
+-----------------------------------------------------------------
+4.4 ORGANIZATION / LOCATION HIERARCHY
+-----------------------------------------------------------------
+
+Purpose:
+Supports location-based sales and profit analysis at chain, region, district, and store levels.
+
+Tables: org_chain, region, district, store
+
+DDL:
+
+CREATE TABLE org_chain (
+    chain_id           BIGINT PRIMARY KEY,
+    chain_code         VARCHAR(30) NOT NULL UNIQUE,
+    chain_name         VARCHAR(100) NOT NULL,
+    active_flag        CHAR(1) DEFAULT 'Y'
+);
+
+CREATE TABLE region (
+    region_id          BIGINT PRIMARY KEY,
+    chain_id           BIGINT NOT NULL,
+    region_code        VARCHAR(30) NOT NULL,
+    region_name        VARCHAR(100) NOT NULL,
+    active_flag        CHAR(1) DEFAULT 'Y',
+    CONSTRAINT uq_region UNIQUE (chain_id, region_code),
+    CONSTRAINT fk_region_chain FOREIGN KEY (chain_id) REFERENCES org_chain(chain_id)
+);
+
+CREATE TABLE district (
+    district_id        BIGINT PRIMARY KEY,
+    region_id          BIGINT NOT NULL,
+    district_code      VARCHAR(30) NOT NULL,
+    district_name      VARCHAR(100) NOT NULL,
+    active_flag        CHAR(1) DEFAULT 'Y',
+    CONSTRAINT uq_district UNIQUE (region_id, district_code),
+    CONSTRAINT fk_district_region FOREIGN KEY (region_id) REFERENCES region(region_id)
+);
+
+CREATE TABLE store (
+    store_id           BIGINT PRIMARY KEY,
+    district_id        BIGINT NOT NULL,
+    store_code         VARCHAR(30) NOT NULL UNIQUE,
+    store_name         VARCHAR(150) NOT NULL,
+    store_type         VARCHAR(50),
+    channel_code       VARCHAR(30),
+    city               VARCHAR(100),
+    state_province     VARCHAR(100),
+    country_code       VARCHAR(10),
+    opening_date       DATE,
+    closing_date       DATE,
+    active_flag        CHAR(1) DEFAULT 'Y',
+    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP,
+    CONSTRAINT fk_store_district FOREIGN KEY (district_id) REFERENCES district(district_id)
+);
+
+-----------------------------------------------------------------
+4.5 BUSINESS CALENDAR
+-----------------------------------------------------------------
+
+Purpose:
+Enables fiscal time intelligence — WTD, MTD, YTD, year-over-year comparison, and daily sales/profit reporting.
+
+Tables: business_calendar
+
+DDL:
+
+CREATE TABLE business_calendar (
+    calendar_date      DATE PRIMARY KEY,
+    business_date_key  INTEGER NOT NULL UNIQUE,
+    fiscal_year        INTEGER NOT NULL,
+    fiscal_quarter     INTEGER NOT NULL,
+    fiscal_month       INTEGER NOT NULL,
+    fiscal_week        INTEGER NOT NULL,
+    fiscal_day_of_week INTEGER NOT NULL,
+    calendar_year      INTEGER NOT NULL,
+    calendar_month     INTEGER NOT NULL,
+    calendar_week      INTEGER NOT NULL,
+    day_name           VARCHAR(20),
+    week_start_date    DATE,
+    week_end_date      DATE,
+    month_start_date   DATE,
+    month_end_date     DATE,
+    year_start_date    DATE,
+    year_end_date      DATE
+);
+
+-----------------------------------------------------------------
+4.6 ITEM PRICE AND COST
+-----------------------------------------------------------------
+
+Purpose:
+item_price stores current and historical regular, promotional, and clearance prices.
+item_cost supports gross profit, net profit, margin, and cost variance calculations.
+
+Tables: item_price, item_cost
+
+DDL:
+
+CREATE TABLE item_price (
+    item_price_id      BIGINT PRIMARY KEY,
+    item_id            BIGINT NOT NULL,
+    store_id           BIGINT,
+    price_type         VARCHAR(30) NOT NULL,
+    selling_price      NUMERIC(18,4) NOT NULL,
+    currency_code      VARCHAR(10) NOT NULL,
+    effective_from     DATE NOT NULL,
+    effective_to       DATE,
+    active_flag        CHAR(1) DEFAULT 'Y',
+    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP,
+    CONSTRAINT chk_price_type CHECK (price_type IN ('REGULAR', 'PROMOTION', 'CLEARANCE')),
+    CONSTRAINT fk_item_price_item FOREIGN KEY (item_id) REFERENCES item(item_id),
+    CONSTRAINT fk_item_price_store FOREIGN KEY (store_id) REFERENCES store(store_id)
+);
+
+CREATE TABLE item_cost (
+    item_cost_id       BIGINT PRIMARY KEY,
+    item_id            BIGINT NOT NULL,
+    store_id           BIGINT,
+    cost_type          VARCHAR(30) NOT NULL,
+    unit_cost          NUMERIC(18,4) NOT NULL,
+    currency_code      VARCHAR(10) NOT NULL,
+    effective_from     DATE NOT NULL,
+    effective_to       DATE,
+    active_flag        CHAR(1) DEFAULT 'Y',
+    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP,
+    CONSTRAINT chk_cost_type CHECK (cost_type IN ('STANDARD', 'LANDED', 'AVERAGE', 'REPLACEMENT')),
+    CONSTRAINT fk_item_cost_item FOREIGN KEY (item_id) REFERENCES item(item_id),
+    CONSTRAINT fk_item_cost_store FOREIGN KEY (store_id) REFERENCES store(store_id)
+);
+
+-----------------------------------------------------------------
+4.7 SALES TRANSACTION HEADER AND LINE
+-----------------------------------------------------------------
+
+Purpose:
+sales_transaction_header stores one row per POS/order transaction.
+sales_transaction_line stores the item-level detail for sales, profit, markdown, and top item analysis.
+
+Tables: sales_transaction_header, sales_transaction_line
+
+DDL:
+
+CREATE TABLE sales_transaction_header (
+    transaction_id     BIGINT PRIMARY KEY,
+    transaction_number VARCHAR(50) NOT NULL UNIQUE,
+    store_id           BIGINT NOT NULL,
+    business_date      DATE NOT NULL,
+    transaction_ts     TIMESTAMP NOT NULL,
+    register_number    VARCHAR(30),
+    cashier_id         VARCHAR(50),
+    sales_channel      VARCHAR(30),
+    transaction_type   VARCHAR(30) NOT NULL,
+    transaction_status VARCHAR(30) DEFAULT 'COMPLETED',
+    customer_id        BIGINT,
+    gross_sales_amt    NUMERIC(18,4) DEFAULT 0,
+    discount_amt       NUMERIC(18,4) DEFAULT 0,
+    markdown_amt       NUMERIC(18,4) DEFAULT 0,
+    net_sales_amt      NUMERIC(18,4) DEFAULT 0,
+    tax_amt            NUMERIC(18,4) DEFAULT 0,
+    total_paid_amt     NUMERIC(18,4) DEFAULT 0,
+    currency_code      VARCHAR(10) NOT NULL,
+    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP,
+    CONSTRAINT chk_transaction_type CHECK (transaction_type IN ('SALE', 'RETURN', 'EXCHANGE', 'VOID')),
+    CONSTRAINT fk_sales_header_store FOREIGN KEY (store_id) REFERENCES store(store_id),
+    CONSTRAINT fk_sales_header_calendar FOREIGN KEY (business_date) REFERENCES business_calendar(calendar_date)
+);
+
+CREATE TABLE sales_transaction_line (
+    transaction_line_id BIGINT PRIMARY KEY,
+    transaction_id      BIGINT NOT NULL,
+    line_number         INTEGER NOT NULL,
+    item_id             BIGINT NOT NULL,
+    quantity_sold       NUMERIC(18,4) NOT NULL,
+    regular_unit_price  NUMERIC(18,4),
+    actual_unit_price   NUMERIC(18,4),
+    gross_sales_amt     NUMERIC(18,4) DEFAULT 0,
+    discount_amt        NUMERIC(18,4) DEFAULT 0,
+    markdown_amt        NUMERIC(18,4) DEFAULT 0,
+    net_sales_amt       NUMERIC(18,4) DEFAULT 0,
+    unit_cost           NUMERIC(18,4),
+    total_cost_amt      NUMERIC(18,4) DEFAULT 0,
+    gross_profit_amt    NUMERIC(18,4) DEFAULT 0,
+    net_profit_amt      NUMERIC(18,4) DEFAULT 0,
+    retail_type         VARCHAR(30),
+    promotion_id        BIGINT,
+    return_flag         CHAR(1) DEFAULT 'N',
+    created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP,
+    CONSTRAINT uq_sales_line UNIQUE (transaction_id, line_number),
+    CONSTRAINT chk_retail_type CHECK (retail_type IN ('REGULAR', 'PROMOTION', 'CLEARANCE')),
+    CONSTRAINT fk_sales_line_header FOREIGN KEY (transaction_id) REFERENCES sales_transaction_header(transaction_id),
+    CONSTRAINT fk_sales_line_item FOREIGN KEY (item_id) REFERENCES item(item_id)
+);
+
+-----------------------------------------------------------------
+4.8 MARKDOWN AND MARKUP EVENTS
+-----------------------------------------------------------------
+
+Purpose:
+markdown_event tracks regular, promotional, and clearance markdown activity by item and location.
+markup_event tracks price increases and margin improvement actions.
+
+Tables: markdown_event, markup_event
+
+DDL:
+
+CREATE TABLE markdown_event (
+    markdown_event_id  BIGINT PRIMARY KEY,
+    markdown_number    VARCHAR(50) NOT NULL UNIQUE,
+    item_id            BIGINT NOT NULL,
+    store_id           BIGINT,
+    markdown_type      VARCHAR(30) NOT NULL,
+    retail_type        VARCHAR(30) NOT NULL,
+    business_date      DATE NOT NULL,
+    original_price     NUMERIC(18,4),
+    markdown_price     NUMERIC(18,4),
+    markdown_amt       NUMERIC(18,4) NOT NULL,
+    markdown_pct       NUMERIC(9,4),
+    reason_code        VARCHAR(50),
+    approved_by        VARCHAR(100),
+    effective_from     DATE NOT NULL,
+    effective_to       DATE,
+    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP,
+    CONSTRAINT chk_markdown_type CHECK (markdown_type IN ('PERMANENT', 'TEMPORARY', 'PROMOTIONAL', 'CLEARANCE')),
+    CONSTRAINT chk_markdown_retail_type CHECK (retail_type IN ('REGULAR', 'PROMOTION', 'CLEARANCE')),
+    CONSTRAINT fk_markdown_item FOREIGN KEY (item_id) REFERENCES item(item_id),
+    CONSTRAINT fk_markdown_store FOREIGN KEY (store_id) REFERENCES store(store_id),
+    CONSTRAINT fk_markdown_calendar FOREIGN KEY (business_date) REFERENCES business_calendar(calendar_date)
+);
+
+CREATE TABLE markup_event (
+    markup_event_id    BIGINT PRIMARY KEY,
+    markup_number      VARCHAR(50) NOT NULL UNIQUE,
+    item_id            BIGINT NOT NULL,
+    store_id           BIGINT,
+    markup_type        VARCHAR(30) NOT NULL,
+    business_date      DATE NOT NULL,
+    old_price          NUMERIC(18,4),
+    new_price          NUMERIC(18,4),
+    markup_amt         NUMERIC(18,4) NOT NULL,
+    markup_pct         NUMERIC(9,4),
+    reason_code        VARCHAR(50),
+    approved_by        VARCHAR(100),
+    effective_from     DATE NOT NULL,
+    effective_to       DATE,
+    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP,
+    CONSTRAINT chk_markup_type CHECK (markup_type IN ('PRICE_INCREASE', 'COST_RECOVERY', 'MARGIN_IMPROVEMENT')),
+    CONSTRAINT fk_markup_item FOREIGN KEY (item_id) REFERENCES item(item_id),
+    CONSTRAINT fk_markup_store FOREIGN KEY (store_id) REFERENCES store(store_id),
+    CONSTRAINT fk_markup_calendar FOREIGN KEY (business_date) REFERENCES business_calendar(calendar_date)
+);
+
+-----------------------------------------------------------------
+4.9 INVENTORY SNAPSHOT
+-----------------------------------------------------------------
+
+Purpose:
+Stores daily item-store inventory position. Supports current sales projection, stock-sensitive season performance, and sell-through analysis.
+
+Tables: inventory_snapshot
+
+DDL:
+
+CREATE TABLE inventory_snapshot (
+    inventory_snapshot_id BIGINT PRIMARY KEY,
+    item_id               BIGINT NOT NULL,
+    store_id              BIGINT NOT NULL,
+    business_date         DATE NOT NULL,
+    beginning_on_hand_qty NUMERIC(18,4) DEFAULT 0,
+    ending_on_hand_qty    NUMERIC(18,4) DEFAULT 0,
+    available_qty         NUMERIC(18,4) DEFAULT 0,
+    reserved_qty          NUMERIC(18,4) DEFAULT 0,
+    in_transit_qty        NUMERIC(18,4) DEFAULT 0,
+    inventory_cost_amt    NUMERIC(18,4) DEFAULT 0,
+    inventory_retail_amt  NUMERIC(18,4) DEFAULT 0,
+    created_at            TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at            TIMESTAMP,
+    CONSTRAINT uq_inventory_snapshot UNIQUE (item_id, store_id, business_date),
+    CONSTRAINT fk_inventory_item FOREIGN KEY (item_id) REFERENCES item(item_id),
+    CONSTRAINT fk_inventory_store FOREIGN KEY (store_id) REFERENCES store(store_id),
+    CONSTRAINT fk_inventory_calendar FOREIGN KEY (business_date) REFERENCES business_calendar(calendar_date)
+);
+
+-----------------------------------------------------------------
+4.10 SALES FORECAST / PROJECTION
+-----------------------------------------------------------------
+
+Purpose:
+Stores projected sales, cost, profit, and markdown at item-store, department-store, or chain-level grains. Supports current sales projection and forecast variance analysis.
+
+Tables: sales_forecast
+
+DDL:
+
+CREATE TABLE sales_forecast (
+    sales_forecast_id      BIGINT PRIMARY KEY,
+    forecast_version       VARCHAR(50) NOT NULL,
+    item_id                BIGINT NOT NULL,
+    store_id               BIGINT,
+    department_id          BIGINT,
+    season_id              BIGINT,
+    forecast_date          DATE NOT NULL,
+    forecast_grain         VARCHAR(30) NOT NULL,
+    forecast_qty           NUMERIC(18,4) DEFAULT 0,
+    forecast_sales_amt     NUMERIC(18,4) DEFAULT 0,
+    forecast_cost_amt      NUMERIC(18,4) DEFAULT 0,
+    forecast_profit_amt    NUMERIC(18,4) DEFAULT 0,
+    forecast_markdown_amt  NUMERIC(18,4) DEFAULT 0,
+    forecast_method        VARCHAR(50),
+    confidence_pct         NUMERIC(9,4),
+    active_flag            CHAR(1) DEFAULT 'Y',
+    created_at             TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at             TIMESTAMP,
+    CONSTRAINT chk_forecast_grain CHECK (forecast_grain IN ('ITEM_STORE_DAY', 'ITEM_STORE_WEEK', 'DEPARTMENT_STORE_WEEK', 'ITEM_CHAIN_WEEK')),
+    CONSTRAINT fk_forecast_item FOREIGN KEY (item_id) REFERENCES item(item_id),
+    CONSTRAINT fk_forecast_store FOREIGN KEY (store_id) REFERENCES store(store_id),
+    CONSTRAINT fk_forecast_department FOREIGN KEY (department_id) REFERENCES department(department_id),
+    CONSTRAINT fk_forecast_season FOREIGN KEY (season_id) REFERENCES season(season_id),
+    CONSTRAINT fk_forecast_calendar FOREIGN KEY (forecast_date) REFERENCES business_calendar(calendar_date)
+);
+
+-----------------------------------------------------------------
+4.11 OPTIONAL DAILY OPERATIONAL SUMMARY
+-----------------------------------------------------------------
+
+Purpose:
+Stores daily item-store aggregated metrics for faster dashboard reporting while preserving sales_transaction_line as the system-of-record transaction grain.
+
+Tables: daily_item_store_sales_summary
+
+DDL:
+
+CREATE TABLE daily_item_store_sales_summary (
+    summary_id          BIGINT PRIMARY KEY,
+    business_date       DATE NOT NULL,
+    store_id            BIGINT NOT NULL,
+    item_id             BIGINT NOT NULL,
+    sales_qty           NUMERIC(18,4) DEFAULT 0,
+    gross_sales_amt     NUMERIC(18,4) DEFAULT 0,
+    net_sales_amt       NUMERIC(18,4) DEFAULT 0,
+    discount_amt        NUMERIC(18,4) DEFAULT 0,
+    markdown_amt        NUMERIC(18,4) DEFAULT 0,
+    markup_amt          NUMERIC(18,4) DEFAULT 0,
+    total_cost_amt      NUMERIC(18,4) DEFAULT 0,
+    gross_profit_amt    NUMERIC(18,4) DEFAULT 0,
+    net_profit_amt      NUMERIC(18,4) DEFAULT 0,
+    return_qty          NUMERIC(18,4) DEFAULT 0,
+    return_amt          NUMERIC(18,4) DEFAULT 0,
+    created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP,
+    CONSTRAINT uq_daily_item_store_sales UNIQUE (business_date, store_id, item_id),
+    CONSTRAINT fk_summary_calendar FOREIGN KEY (business_date) REFERENCES business_calendar(calendar_date),
+    CONSTRAINT fk_summary_store FOREIGN KEY (store_id) REFERENCES store(store_id),
+    CONSTRAINT fk_summary_item FOREIGN KEY (item_id) REFERENCES item(item_id)
+);
+
+=================================================================
+5. METRIC COVERAGE MAPPING
+=================================================================
+
+Current Top 10 Sale Items — Primary tables: sales_transaction_line, sales_transaction_header, item, department
+Current Sales & Profit Contribution — Primary tables: sales_transaction_line, business_calendar, merch_division, department, store
+Markdown to Sales Ratio — Primary tables: markdown_event, sales_transaction_line, business_calendar
+Season Performance — Primary tables: item_season, season, sales_transaction_line, inventory_snapshot
+Daily Sales & Profit — Primary tables: sales_transaction_header, sales_transaction_line, store, business_calendar
+Current Sales Projection — Primary tables: sales_forecast, inventory_snapshot, sales_transaction_line
+Cost / Profit Metrics — Primary tables: item_cost, sales_transaction_line
+Markdown / Markup Metrics — Primary tables: markdown_event, markup_event, item_price
+
+=================================================================
+6. KEY METRIC FORMULAS
+=================================================================
+
+Net Sales Amount: net_sales_amt = gross_sales_amt - discount_amt - markdown_amt
+Total Cost Amount: total_cost_amt = quantity_sold * unit_cost
+Gross Profit Amount: gross_profit_amt = net_sales_amt - total_cost_amt
+Net Profit Amount: net_profit_amt = net_sales_amt - total_cost_amt - allocated_expense_amt
+Markdown to Sales Ratio: markdown_to_sales_ratio = markdown_amt / NULLIF(net_sales_amt, 0)
+Sales Contribution %: sales_contribution_pct = item_or_division_net_sales_amt / NULLIF(total_net_sales_amt, 0)
+Profit Contribution %: profit_contribution_pct = item_or_division_net_profit_amt / NULLIF(total_net_profit_amt, 0)
+Markup %: markup_pct = markup_amt / NULLIF(old_price, 0)
+Forecast Variance %: forecast_variance_pct = (actual_sales_amt - forecast_sales_amt) / NULLIF(forecast_sales_amt, 0)
+
+=================================================================
+9. RECOMMENDED DATA MODEL GRAIN
+=================================================================
+
+item — Grain: One row per sellable SKU/item.
+store — Grain: One row per physical or logical selling location.
+sales_transaction_header — Grain: One row per POS/order transaction.
+sales_transaction_line — Grain: One row per item line in a transaction.
+markdown_event — Grain: One row per markdown event per item/location/effective period.
+markup_event — Grain: One row per markup event per item/location/effective period.
+inventory_snapshot — Grain: One row per item/store/business date.
+sales_forecast — Grain: One row per item/store/date/forecast version/grain.
+daily_item_store_sales_summary — Grain: One row per item/store/business date.

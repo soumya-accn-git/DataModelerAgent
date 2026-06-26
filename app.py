@@ -121,12 +121,19 @@ def main():
     if st.session_state.get("pipeline_running") and st.session_state.get("trigger_file"):
         render_pipeline(st.session_state["trigger_file"])
 
-    # Show output when CDM result exists OR when LDM result exists (LDM-only mode)
     cdm_result = st.session_state.get("pipeline_result")
     ldm_result = st.session_state.get("ldm_result")
+    mode       = st.session_state.get("pipeline_mode", "CDM only")
 
-    if cdm_result:
+    # In LDM-only mode prioritise LDM output; the CDM (restored from cache by
+    # _restore_cached so the pipeline thread can use it) is just the input and
+    # should not be rendered as the primary result.
+    if mode == "LDM only" and ldm_result:
+        render_ldm_output(ldm_result)
+    elif cdm_result:
         render_output(cdm_result)
+        if ldm_result:
+            render_ldm_output(ldm_result)
     elif ldm_result:
         render_ldm_output(ldm_result)
 

@@ -1,4 +1,5 @@
 import os
+import subprocess
 import requests
 import json
 from typing import Optional
@@ -15,12 +16,103 @@ _DEFAULT_NUM_CTX     = 32768
 _DEFAULT_NUM_PREDICT = 8192
 
 
+# ── Claude CLI routing ────────────────────────────────────────────────────────
+# When ANTHROPIC_API_KEY is set (or USE_CLAUDE_CLI=true), all chat() calls
+# are routed to Claude Sonnet 4.6 via the Claude CLI subprocess — the same
+# mechanism used by brd_parser_claude.bat.
+
+def _use_claude_cli() -> bool:
+    """True when Claude CLI should handle all LLM calls."""
+    key  = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+    flag = os.environ.get("USE_CLAUDE_CLI", "true" if key else "false").lower()
+    return flag not in ("false", "0", "no") and (bool(key) or flag in ("true", "1", "yes"))
+
+
+def _chat_claude_cli(
+    messages:    list[dict],
+    temperature: float,
+    format:      Optional[str],
+    num_predict: Optional[int],
+) -> str:
+    """
+    Route a chat() call to Claude Sonnet 4.6 via the Claude CLI subprocess.
+
+    Builds a single text prompt from system + user messages, then pipes it to:
+        claude --model claude-sonnet-4-6 -p
+    which reads stdin as the user prompt and writes the response to stdout.
+    """
+    model = os.environ.get("CLAUDE_MODEL", "claude-sonnet-4-6")
+
+    system_parts = [m["content"] for m in messages if m["role"] == "system"]
+    conv_parts   = [m["content"] for m in messages if m["role"] != "system"]
+
+    parts: list[str] = []
+    if system_parts:
+        parts.extend(system_parts)
+    parts.extend(conv_parts)
+    full_prompt = "\n\n".join(parts)
+
+    if format == "json":
+        full_prompt += "\n\nReturn ONLY valid JSON. No explanation, no markdown fences."
+
+    proc = subprocess.run(
+        ["claude", "--model", model, "-p"],
+        input=full_prompt,
+        capture_output=True,
+        text=True,
+        timeout=1800,
+    )
+
+    out = proc.stdout.strip()
+    if not out and proc.returncode != 0:
+        raise RuntimeError(
+            f"Claude CLI failed (exit {proc.returncode}): "
+            f"{proc.stderr[:300] or '(no stderr)'}"
+        )
+    return out
+
+
 def list_models(base_url: str) -> list[str]:
     """Return list of locally available Ollama model names."""
     resp = requests.get(f"{base_url}/api/tags", timeout=5)
     resp.raise_for_status()
     data = resp.json()
     return [m["name"] for m in data.get("models", [])]
+
+
+def ping(base_url: str, timeout: int = 5) -> dict:
+    """
+    Check Ollama reachability. Returns a dict with:
+      ok       — True if Ollama responded
+      version  — Ollama version string (or "")
+      models   — list of available model names
+      error    — error message if not ok
+      latency_ms — round-trip time in milliseconds
+    """
+    import time
+    result = {"ok": False, "version": "", "models": [], "error": "", "latency_ms": 0}
+    t0 = time.monotonic()
+    try:
+        # /api/version is the lightest endpoint
+        vr = requests.get(f"{base_url}/api/version", timeout=timeout)
+        vr.raise_for_status()
+        result["version"] = vr.json().get("version", "")
+
+        # Also fetch model list while we're here
+        mr = requests.get(f"{base_url}/api/tags", timeout=timeout)
+        mr.raise_for_status()
+        result["models"] = [m["name"] for m in mr.json().get("models", [])]
+
+        result["ok"] = True
+    except requests.exceptions.ConnectionError as e:
+        result["error"] = f"Connection refused — is Ollama running? ({e})"
+    except requests.exceptions.Timeout:
+        result["error"] = f"Timed out after {timeout}s — Ollama may be busy or unreachable"
+    except Exception as e:
+        result["error"] = str(e)
+    finally:
+        result["latency_ms"] = int((time.monotonic() - t0) * 1000)
+    return result
 
 
 def chat(
@@ -45,7 +137,13 @@ def chat(
     run. Without it, classification (entity types, etc.) drifts run-to-run even
     at temperature 0. Defaults to OLLAMA_SEED env var (falling back to 42).
     Pass seed=-1 to explicitly opt out (random each call).
+
+    When ANTHROPIC_API_KEY is set (or USE_CLAUDE_CLI=true), the call is routed
+    to Claude Sonnet 4.6 via the Claude CLI subprocess instead of Ollama.
     """
+    if _use_claude_cli():
+        return _chat_claude_cli(messages, temperature, format, num_predict)
+
     nc = num_ctx if num_ctx is not None else int(
         os.environ.get("OLLAMA_NUM_CTX", _DEFAULT_NUM_CTX))
     npred = num_predict if num_predict is not None else int(

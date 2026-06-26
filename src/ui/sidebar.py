@@ -1,7 +1,7 @@
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
 import streamlit as st
-from src.tools.ollama_client import list_models
+from src.tools.ollama_client import list_models, ping as ollama_ping
 
 # Load all credentials from Neo4j_instance_detl.txt via config.py
 from config import (
@@ -18,28 +18,102 @@ def render_sidebar():
             "Base URL",
             value=st.session_state.get("ollama_url", OLLAMA_URL),
         )
+
+        # Re-check when URL changes
+        prev_url = st.session_state.get("_ollama_checked_url", "")
+        if ollama_url != prev_url:
+            st.session_state.pop("ollama_status", None)
+
         st.session_state["ollama_url"] = ollama_url
 
-        available_models = []
-        try:
-            available_models = list_models(ollama_url)
-        except Exception:
-            pass
+        # ── Model selector — uses cached status when available ────────────────
+        status = st.session_state.get("ollama_status")  # set by Check button or auto-check
+
+        # Auto-check once per URL (first load only, non-blocking)
+        if status is None:
+            try:
+                available_models = list_models(ollama_url)
+                st.session_state["ollama_status"] = {
+                    "ok": True, "models": available_models,
+                    "version": "", "latency_ms": 0, "error": "",
+                }
+                st.session_state["_ollama_checked_url"] = ollama_url
+                status = st.session_state["ollama_status"]
+            except Exception as e:
+                st.session_state["ollama_status"] = {
+                    "ok": False, "models": [], "version": "",
+                    "latency_ms": 0, "error": str(e),
+                }
+                st.session_state["_ollama_checked_url"] = ollama_url
+                status = st.session_state["ollama_status"]
+
+        available_models = status.get("models", []) if status else []
 
         if available_models:
+            # Inline status badge
+            ver = status.get("version", "")
+            ms  = status.get("latency_ms", 0)
+            ver_str = f" · v{ver}" if ver else ""
+            ms_str  = f" · {ms}ms" if ms else ""
+            st.caption(f"✅ Ollama reachable{ver_str}{ms_str} · {len(available_models)} model(s)")
+
             default_idx = 0
             for i, m in enumerate(available_models):
-                if any(k in m.lower() for k in ["llama3","mistral","qwen"]):
-                    default_idx = i; break
+                if any(k in m.lower() for k in ["llama3", "mistral", "qwen"]):
+                    default_idx = i
+                    break
             selected_model = st.selectbox("Model", available_models, index=default_idx)
         else:
             selected_model = st.text_input(
                 "Model name",
-                value=st.session_state.get("ollama_model","llama3.1:8b"),
+                value=st.session_state.get("ollama_model", "llama3.1:8b"),
             )
-            st.warning("⚠️ Ollama not reachable. Run: `ollama serve`")
+            err = status.get("error", "") if status else ""
+            st.warning("⚠️ Ollama not reachable — click **Check Ollama** below")
+            if err:
+                with st.expander("🔍 Connection error details"):
+                    st.code(err, language="")
+                    st.caption(
+                        "Common fixes:\n"
+                        "1. Open a terminal and run: `ollama serve`\n"
+                        "2. Or start Ollama desktop app\n"
+                        "3. Check the URL above matches your Ollama port (default 11434)\n"
+                        "4. Try `http://127.0.0.1:11434` instead of `localhost`"
+                    )
 
         st.session_state["ollama_model"] = selected_model
+
+        # ── Check Ollama button ───────────────────────────────────────────────
+        if st.button("🔍 Check Ollama", use_container_width=True):
+            with st.spinner(f"Pinging {ollama_url}…"):
+                result = ollama_ping(ollama_url, timeout=10)
+
+            st.session_state["ollama_status"] = result
+            st.session_state["_ollama_checked_url"] = ollama_url
+
+            if result["ok"]:
+                models = result["models"]
+                ver    = result["version"]
+                ms     = result["latency_ms"]
+                st.success(
+                    f"✅ Ollama **v{ver}** reachable at `{ollama_url}`  \n"
+                    f"⏱ Response time: **{ms} ms**  \n"
+                    f"🤖 **{len(models)}** model(s) available"
+                )
+                if models:
+                    st.code("\n".join(models), language="")
+            else:
+                st.error(f"❌ Cannot reach Ollama at `{ollama_url}`")
+                st.code(result["error"], language="")
+                import sys as _sys
+                st.caption(
+                    f"Python: `{_sys.executable}`  \n"
+                    "Tips:\n"
+                    "• Run `ollama serve` in a terminal, or start the Ollama desktop app\n"
+                    "• Try changing the URL to `http://127.0.0.1:11434`\n"
+                    "• Check Ollama is not blocked by a firewall on port 11434"
+                )
+            st.rerun()
 
         st.subheader("ChromaDB")
         st.session_state["chroma_path"] = st.text_input(
@@ -210,6 +284,19 @@ def render_sidebar():
                         st.success(f"✅ Seeded {n} ARTS ODM v7.3 gap entities")
                 except Exception as e:
                     st.error(f"ARTS ODM seed failed: {e}")
+
+        if st.button("🏪 Seed OLTP source schema (24 tables)", use_container_width=True):
+            with st.spinner("Seeding OLTP source schema…"):
+                try:
+                    from src.knowledge.oltp_schema_seeder import seed_oltp_schema
+                    n = seed_oltp_schema(
+                        chroma_path=st.session_state.get("chroma_path", "./chroma_db"),
+                        force=True,
+                        on_log=lambda m: st.caption(m),
+                    )
+                    st.success(f"✅ Seeded {n} OLTP source tables into ChromaDB")
+                except Exception as e:
+                    st.error(f"OLTP schema seed failed: {e}")
 
         if st.button("🔬 Seed Oracle RDM (all 927 entities)", use_container_width=True):
             with st.spinner("Seeding all Oracle RDM entities + tables…"):

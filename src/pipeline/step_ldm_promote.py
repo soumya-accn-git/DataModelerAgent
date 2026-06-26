@@ -31,6 +31,11 @@ from src.knowledge.ri_metrics      import query_ri_metrics
 from src.knowledge.oracle_rdm_seeder import (
     query_oracle_rdm, COLLECTION_LDM, COLLECTION_PDM,
 )
+try:
+    from src.knowledge.oltp_schema_seeder import query_oltp_schema as _query_oltp
+    _OLTP_SEEDER_AVAILABLE = True
+except ImportError:
+    _OLTP_SEEDER_AVAILABLE = False
 
 # ── Prompts ───────────────────────────────────────────────────────────────────
 
@@ -42,6 +47,8 @@ Your task is to expand CDM dimension entities into full LDM dimension
 table definitions, grounded in:
 - The Oracle Retail Data Model logical entities and logical->physical mappings
 - The Oracle Retail Insights industry standard attribute definitions
+- The OLTP Source Schema — use the [OLTP Source — <table>] context blocks to derive
+  accurate column names, data types, and hierarchy levels from the source system tables
 - The BRD requirements for this specific subject area
 - Dimensional modelling best practices (Kimball methodology)
 
@@ -84,6 +91,8 @@ Your task is to expand CDM fact entities into full LDM fact table
 definitions, grounded in:
 - The Oracle Retail Data Model physical fact tables and logical->physical mappings
 - The Oracle Retail Insights industry standard metric definitions
+- The OLTP Source Schema — use the [OLTP Source — <table>] context blocks to derive
+  accurate measure column names, data types, and metric formulas from the source tables
 - The BRD requirements for this specific subject area
 - Dimensional modelling best practices (Kimball methodology)
 
@@ -202,6 +211,38 @@ Return a JSON object:
 }}
 JSON:"""
 
+USER_DIM_SINGLE = """Expand this single CDM dimension entity into a full LDM dimension table definition.
+
+DIMENSION ENTITY:
+{entity}
+
+ORACLE RETAIL REFERENCE CONTEXT:
+{oracle_context}
+
+BRD CONTEXT:
+{brd_context}
+
+Return a JSON object with a single dimension table:
+{{
+  "dimension_tables": [
+    {{
+      "table_name": "DIM_<NAME>",
+      "grain": "One row per ...",
+      "scd_type": 2,
+      "primary_key": "<NAME>_KEY",
+      "natural_key": ["<NAME>_ID"],
+      "source_system": "RMS",
+      "fr_references": [],
+      "columns": [
+        {{"name": "<NAME>_KEY", "data_type": "NUMBER(18)", "nullable": false,
+          "description": "Surrogate key", "is_pk": true, "is_nk": false, "is_fk": false}},
+        ...
+      ]
+    }}
+  ]
+}}
+JSON:"""
+
 USER_FACT_SINGLE = """Expand this single CDM fact entity into a full LDM fact table definition.
 
 FACT ENTITY:
@@ -301,7 +342,25 @@ def _build_oracle_context(
         except Exception:
             pass
 
-        # 3. Fall back to Insights guide reference
+        # 3. OLTP source schema — always included (provides source columns for LDM)
+        if _OLTP_SEEDER_AVAILABLE:
+            try:
+                oltp_results = _query_oltp(
+                    query=query,
+                    chroma_path=chroma_path,
+                    n_results=2,
+                )
+                for r in oltp_results:
+                    chunk_id = r.get("table_name", "")
+                    if chunk_id and chunk_id not in seen_ids:
+                        seen_ids.add(chunk_id)
+                        context_parts.append(
+                            f"[OLTP Source — {chunk_id}]\n{r['text'][:800]}"
+                        )
+            except Exception:
+                pass
+
+        # 4. Fall back to Insights guide reference
         if not rdm_results:
             ref_results = query_oracle_reference(
                 query=query,
@@ -404,6 +463,55 @@ def _minimal_fact_stub(entity: dict, dim_keys: str) -> dict:
     }
 
 
+def _minimal_dim_stub(entity: dict) -> dict:
+    """Minimal dimension table stub when per-entity LLM expansion fails."""
+    name     = enforce_naming(entity.get("name", "UnknownDimension"), "dimension")
+    base     = name.replace("DIM_", "")
+    attrs    = entity.get("attributes", [])
+    columns  = [
+        {"name": f"{base}_KEY",  "data_type": "NUMBER(18)",    "nullable": False, "is_pk": True,  "is_nk": False, "is_fk": False, "description": "Surrogate key"},
+        {"name": f"{base}_ID",   "data_type": "VARCHAR2(50)",  "nullable": False, "is_pk": False, "is_nk": True,  "is_fk": False, "description": "Natural / business key"},
+        {"name": "DESCRIPTION",  "data_type": "VARCHAR2(255)", "nullable": True,  "is_pk": False, "is_nk": False, "is_fk": False, "description": "Description"},
+        {"name": "EFFECTIVE_DATE","data_type": "DATE",         "nullable": True,  "is_pk": False, "is_nk": False, "is_fk": False, "description": "SCD2 effective date"},
+        {"name": "EXPIRY_DATE",  "data_type": "DATE",          "nullable": True,  "is_pk": False, "is_nk": False, "is_fk": False, "description": "SCD2 expiry date"},
+        {"name": "CURRENT_FLAG", "data_type": "CHAR(1)",       "nullable": False, "is_pk": False, "is_nk": False, "is_fk": False, "description": "Y = current row"},
+    ]
+    for attr in attrs[:6]:
+        col_name = re.sub(r"[^A-Za-z0-9_]", "", attr.upper().replace(" ", "_"))
+        if col_name and col_name not in {c["name"] for c in columns}:
+            columns.append({"name": col_name, "data_type": "VARCHAR2(100)", "nullable": True,
+                             "is_pk": False, "is_nk": False, "is_fk": False, "description": attr})
+    return {
+        "table_name":   name,
+        "grain":        f"One row per {base.lower().replace('_', ' ')} member (current version)",
+        "scd_type":     2,
+        "primary_key":  f"{base}_KEY",
+        "natural_key":  [f"{base}_ID"],
+        "source_system": entity.get("source", "RMS"),
+        "fr_references": [],
+        "columns":      columns,
+        "_stub":        True,
+    }
+
+
+# Patterns that identify report / subject-area pseudo-entities that must not
+# become LDM tables.  Checked against entity name (PascalCase) and description.
+_REPORT_NAME_RE = re.compile(
+    r'SubjectArea$'           # e.g. SalesProfitSubjectArea
+    r'|Top\d+',               # e.g. CurrentTop10SaleItems  (R6c in SKILL.md)
+    re.IGNORECASE,
+)
+_REPORT_DESC_RE = re.compile(r'\b(report|dashboard|scorecard)\b', re.IGNORECASE)
+
+
+def _is_report_entity(entity: dict) -> bool:
+    """Return True if the entity looks like a report/subject-area, not a real DW table."""
+    return (
+        bool(_REPORT_NAME_RE.search(entity.get("name", "")))
+        or bool(_REPORT_DESC_RE.search(entity.get("description", "")))
+    )
+
+
 # ── Main entry point ──────────────────────────────────────────────────────────
 
 def promote_cdm_to_ldm(
@@ -437,9 +545,20 @@ def promote_cdm_to_ldm(
     if not entities:
         raise ValueError("No CDM entities found — run CDM pipeline first")
 
+    # Filter out report / subject-area pseudo-entities before promotion.
+    # These come from the CDM when the BRD contains report names that were
+    # incorrectly classified as facts (e.g. SalesProfitSubjectArea,
+    # CurrentTop10SaleItems).  They are not real DW tables.
+    report_entities = [e for e in entities if _is_report_entity(e)]
+    if report_entities:
+        skipped = [e["name"] for e in report_entities]
+        log(f"  Skipping {len(skipped)} report/subject-area entities (not DW tables): "
+            f"{', '.join(skipped)}")
+    entities = [e for e in entities if not _is_report_entity(e)]
+
     # Split by type
-    dim_entities   = [e for e in entities if e.get("type") in ("dimension", "reference")]
-    fact_entities  = [e for e in entities if e.get("type") == "fact"]
+    dim_entities    = [e for e in entities if e.get("type") in ("dimension", "reference")]
+    fact_entities   = [e for e in entities if e.get("type") == "fact"]
     bridge_entities = [e for e in entities if e.get("type") == "bridge"]
 
     log(f"Promoting {len(dim_entities)} dimensions, {len(fact_entities)} facts, "
@@ -460,10 +579,9 @@ def promote_cdm_to_ldm(
         for e in dim_entities
     )
 
+    system_dim_with_rules = SYSTEM_DIM + "\n" + get_prompt_rules()
     dimension_tables = []
     try:
-        # Inject naming conventions into system prompt at call time
-        system_dim_with_rules = SYSTEM_DIM + "\n" + get_prompt_rules()
         raw_dim = chat(
             base_url=ollama_url,
             model=model,
@@ -483,6 +601,57 @@ def promote_cdm_to_ldm(
         log(f"  Expanded {len(dimension_tables)} dimension tables")
     except Exception as e:
         log(f"  Dimension expansion failed: {e}")
+
+    # Pass 2 — per-dimension fallback when the batch call produced 0 tables
+    # (mirrors the fact Pass 2 strategy so no dimension entity is ever lost)
+    extracted_dim_names = {
+        enforce_naming(t.get("table_name", ""), "dimension").upper()
+        for t in dimension_tables
+    }
+    missing_dim_entities = [
+        e for e in dim_entities
+        if enforce_naming(e.get("name", ""), "dimension").upper() not in extracted_dim_names
+    ]
+    if missing_dim_entities:
+        log(f"  Pass 2 — extracting {len(missing_dim_entities)} missing dimensions individually…")
+        for entity in missing_dim_entities:
+            ename = entity.get("name", "")
+            log(f"    Extracting: {ename}")
+            try:
+                entity_text = (
+                    f"Name: {ename}\n"
+                    f"Type: {entity.get('type','')}\n"
+                    f"Description: {entity.get('description','')}\n"
+                    f"Attributes: {', '.join(entity.get('attributes', []))}"
+                )
+                single_ctx = _build_oracle_context([entity], chroma_path, "dimension")
+                raw_single = chat(
+                    base_url=ollama_url,
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": system_dim_with_rules},
+                        {"role": "user",   "content": USER_DIM_SINGLE.format(
+                            entity=entity_text,
+                            oracle_context=single_ctx[:800],
+                            brd_context=brd_ctx[:1500],
+                        )},
+                    ],
+                    temperature=temperature,
+                    format="json",
+                )
+                single_data = extract_json(raw_single)
+                single_tables = single_data.get("dimension_tables", []) if isinstance(single_data, dict) else []
+                if single_tables:
+                    dimension_tables.extend(single_tables)
+                    log(f"    ✅ Got {single_tables[0].get('table_name','?')}")
+                else:
+                    log(f"    ⚠️  No table returned for {ename} — building minimal stub")
+                    dimension_tables.append(_minimal_dim_stub(entity))
+            except Exception as e:
+                log(f"    ⚠️  Failed for {ename}: {e} — building minimal stub")
+                dimension_tables.append(_minimal_dim_stub(entity))
+
+    log(f"  Total dimension tables: {len(dimension_tables)}/{len(dim_entities)}")
 
     # ── Call 2 — Fact tables ──────────────────────────────────────────────────
     log("Call 2 — expanding fact entities via Oracle RAG…")

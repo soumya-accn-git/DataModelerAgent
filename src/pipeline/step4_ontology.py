@@ -9,6 +9,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirna
 import chromadb
 from chromadb.utils import embedding_functions
 from src.knowledge.oracle_rdm_seeder import query_oracle_rdm, COLLECTION_LDM
+try:
+    from src.knowledge.oltp_schema_seeder import query_oltp_schema as _query_oltp
+    _OLTP_AVAILABLE = True
+except ImportError:
+    _OLTP_AVAILABLE = False
 
 
 COLLECTION_NAME = "ontology_concepts"
@@ -79,6 +84,16 @@ def enrich_with_ontology(
             ] or ["(no ORDM match)"]
         except Exception:
             entity["ordm_matches"] = []
+
+        # Ground each entity in the OLTP source schema — tag which OLTP table(s)
+        # feed this CDM entity. Stored as oltp_source for traceability.
+        if _OLTP_AVAILABLE:
+            try:
+                q2 = f"{entity.get('name','')} {entity.get('description','')}"
+                oltp_hits = _query_oltp(query=q2, chroma_path=chroma_path, n_results=2)
+                entity["oltp_source"] = [r["table_name"] for r in oltp_hits if r.get("table_name")]
+            except Exception:
+                entity["oltp_source"] = []
 
     collection = _get_collection(chroma_path)
 

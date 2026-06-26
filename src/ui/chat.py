@@ -151,21 +151,35 @@ def _has_stored_ldm(brd_hash: str) -> bool:
 # ── Pipeline trigger ───────────────────────────────────────────────────────────
 
 def _check_prereqs(mode: str) -> tuple[bool, str]:
+    from src.tools.result_store import latest_cdm as _latest_cdm, latest_ldm as _latest_ldm
     uploaded = st.session_state.get("current_uploaded_file")
-    if uploaded is None:
-        return False, "No BRD file uploaded. Please upload a `.docx` file first using the upload widget above."
 
+    # CDM modes always need the BRD file as input
     if mode in ("CDM only", "CDM + LDM + PDM"):
+        if not uploaded:
+            return False, "No BRD file uploaded. Please upload a `.docx` file first using the upload widget above."
         return True, ""
 
-    brd_hash = _file_hash(uploaded)
+    # LDM / PDM only need their upstream result — no BRD file required
     if mode == "LDM only":
-        if not (st.session_state.get("pipeline_result") or _has_stored_cdm(brd_hash)):
+        brd_hash = _file_hash(uploaded) if uploaded else None
+        has = (
+            st.session_state.get("pipeline_result") is not None
+            or (brd_hash and _has_stored_cdm(brd_hash))
+            or bool(_latest_cdm())
+        )
+        if not has:
             return False, "LDM requires a CDM result. Run **CDM only** or **full pipeline** first."
         return True, ""
 
     if mode == "PDM only":
-        if not (st.session_state.get("ldm_result") or _has_stored_ldm(brd_hash)):
+        brd_hash = _file_hash(uploaded) if uploaded else None
+        has = (
+            st.session_state.get("ldm_result") is not None
+            or (brd_hash and _has_stored_ldm(brd_hash))
+            or bool(_latest_ldm())
+        )
+        if not has:
             return False, "PDM requires an LDM result. Run **LDM only** or **full pipeline** first."
         return True, ""
 
@@ -173,15 +187,42 @@ def _check_prereqs(mode: str) -> tuple[bool, str]:
 
 
 def _trigger_pipeline(mode: str) -> str:
-    uploaded = st.session_state["current_uploaded_file"]
+    from src.tools.result_store import latest_cdm as _latest_cdm, latest_ldm as _latest_ldm
+    uploaded = st.session_state.get("current_uploaded_file")
+
     st.session_state["pipeline_mode"]           = mode
     st.session_state["pipeline_running"]        = True
-    st.session_state["trigger_file"]            = uploaded
     st.session_state["use_cache"]               = False
-    st.session_state["pipeline_result"]         = None
-    st.session_state["previous_brd_hash"]       = _file_hash(uploaded)
     st.session_state["chat_triggered_pipeline"] = True
     st.session_state["chat_pipeline_mode"]      = mode
+
+    if mode in ("CDM only", "CDM + LDM + PDM"):
+        # CDM modes need the actual uploaded file
+        st.session_state["trigger_file"]      = uploaded
+        st.session_state["pipeline_result"]   = None
+        st.session_state["ldm_result"]        = None
+        if uploaded:
+            st.session_state["previous_brd_hash"] = _file_hash(uploaded)
+    elif mode == "LDM only":
+        # Load CDM from session or disk — BRD file not required
+        if not st.session_state.get("pipeline_result"):
+            cdm = _latest_cdm()
+            if cdm:
+                st.session_state["pipeline_result"]   = cdm
+                st.session_state["previous_brd_hash"] = cdm.get("_brd_hash", "unknown")
+        st.session_state["ldm_result"]  = None
+        # trigger_file must be truthy for app.py to call render_pipeline;
+        # render_pipeline doesn't use it for LDM-only mode
+        st.session_state["trigger_file"] = uploaded or True
+    elif mode == "PDM only":
+        if not st.session_state.get("ldm_result"):
+            ldm = _latest_ldm()
+            if ldm:
+                st.session_state["ldm_result"] = ldm
+        st.session_state["trigger_file"] = uploaded or True
+        if uploaded:
+            st.session_state["previous_brd_hash"] = _file_hash(uploaded)
+
     labels = {
         "CDM only":        "CDM pipeline (8 steps)",
         "LDM only":        "LDM pipeline (Steps A + B + V)",
@@ -536,9 +577,10 @@ def render_chat():
     st.subheader("💬 Chat")
 
     # ── Quick-action buttons ───────────────────────────────────────────────
+    from src.tools.result_store import latest_cdm as _latest_cdm, latest_ldm as _latest_ldm
     is_running = st.session_state.get("pipeline_running", False)
-    has_cdm    = st.session_state.get("pipeline_result") is not None
-    has_ldm    = st.session_state.get("ldm_result") is not None
+    has_cdm    = st.session_state.get("pipeline_result") is not None or bool(_latest_cdm())
+    has_ldm    = st.session_state.get("ldm_result") is not None or bool(_latest_ldm())
     uploaded   = st.session_state.get("current_uploaded_file")
 
     qa_cols = st.columns(4)
